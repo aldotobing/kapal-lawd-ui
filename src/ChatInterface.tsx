@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Header from "./components/Header";
 import MessageList from "./components/MessageList";
-import { Mic, Upload, ArrowUp } from "lucide-react"; // ArrowUp untuk tombol kirim
+import { Mic, Upload, ArrowUp } from "lucide-react";
 
 export interface Message {
   id: string;
@@ -19,7 +19,6 @@ interface Language {
 const ChatInterface: React.FC = (): JSX.Element => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState("");
-  //const [_isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState<Language>({
@@ -27,7 +26,7 @@ const ChatInterface: React.FC = (): JSX.Element => {
     name: "English",
   });
   const [isListening, setIsListening] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null); // Ref buat autoscroll
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const languages: Language[] = [
     { code: "en", name: "English" },
@@ -51,26 +50,15 @@ const ChatInterface: React.FC = (): JSX.Element => {
     };
     setMessages((prev) => [...prev, newMessage]);
     setInputText("");
-    //setIsLoading(true);
     setIsTyping(true);
 
     try {
       const stream = await fetchBotResponse(newMessage.text);
-      await processStream(stream);
+      await processStream(stream, newMessage.id);
     } catch (error) {
       console.error("Error fetching bot response:", error);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now().toString(),
-          text: "Something went wrong, please try again.",
-          sender: "bot",
-          timestamp: new Date(),
-          username: "AI Assistant",
-        },
-      ]);
+      addBotMessage("Something went wrong, please try again.");
     } finally {
-      //setIsLoading(false);
       setIsTyping(false);
     }
   };
@@ -97,14 +85,32 @@ const ChatInterface: React.FC = (): JSX.Element => {
     return response.body;
   };
 
-  const processStream = async (stream: ReadableStream<Uint8Array> | null) => {
+  const processStream = async (
+    stream: ReadableStream<Uint8Array> | null,
+    tempMessageId: string
+  ) => {
     if (!stream) return;
 
     const reader = stream.getReader();
     const decoder = new TextDecoder();
     let botResponse = "";
 
-    const tempMessageId = Date.now().toString();
+    addTemporaryMessage(tempMessageId);
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value, { stream: true });
+      const messages = chunk.split("\n");
+
+      updateBotResponse(messages, tempMessageId, botResponse);
+    }
+
+    finalizeBotResponse(tempMessageId, botResponse);
+  };
+
+  const addTemporaryMessage = (tempMessageId: string) => {
     setMessages((prev) => [
       ...prev,
       {
@@ -115,39 +121,37 @@ const ChatInterface: React.FC = (): JSX.Element => {
         username: "AI Assistant",
       },
     ]);
+  };
 
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
+  const updateBotResponse = (
+    messages: string[],
+    tempMessageId: string,
+    botResponse: string
+  ) => {
+    messages.forEach((message) => {
+      if (message.startsWith("data:")) {
+        const jsonStr = message.slice(5).trim();
 
-      const chunk = decoder.decode(value, { stream: true });
-      const messages = chunk.split("\n");
+        if (jsonStr === "[DONE]") return;
 
-      messages.forEach((message) => {
-        if (message.startsWith("data:")) {
-          const jsonStr = message.slice(5).trim();
-
-          if (jsonStr === "[DONE]") {
-            return;
+        try {
+          const data = JSON.parse(jsonStr);
+          if (data.response) {
+            botResponse += data.response;
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === tempMessageId ? { ...msg, text: botResponse } : msg
+              )
+            );
           }
-
-          try {
-            const data = JSON.parse(jsonStr);
-            if (data.response) {
-              botResponse += data.response;
-              setMessages((prev) =>
-                prev.map((msg) =>
-                  msg.id === tempMessageId ? { ...msg, text: botResponse } : msg
-                )
-              );
-            }
-          } catch (error) {
-            console.error("Error parsing JSON:", error);
-          }
+        } catch (error) {
+          console.error("Error parsing JSON:", error);
         }
-      });
-    }
+      }
+    });
+  };
 
+  const finalizeBotResponse = (tempMessageId: string, botResponse: string) => {
     setMessages((prev) => [
       ...prev.filter((msg) => msg.id !== tempMessageId),
       {
@@ -156,6 +160,19 @@ const ChatInterface: React.FC = (): JSX.Element => {
         sender: "bot",
         timestamp: new Date(),
         username: "AI Assistant",
+      },
+    ]);
+  };
+
+  const addBotMessage = (text: string) => {
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        text,
+        sender: "bot",
+        timestamp: new Date(),
+        username: "Kapal Lawd",
       },
     ]);
   };
