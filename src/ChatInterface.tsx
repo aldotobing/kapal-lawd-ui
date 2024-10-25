@@ -19,7 +19,7 @@ interface Language {
 const ChatInterface: React.FC = (): JSX.Element => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState("");
-  const [_isLoading, setIsLoading] = useState(false);
+  //const [_isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState<Language>({
@@ -51,7 +51,7 @@ const ChatInterface: React.FC = (): JSX.Element => {
     };
     setMessages((prev) => [...prev, newMessage]);
     setInputText("");
-    setIsLoading(true);
+    //setIsLoading(true);
     setIsTyping(true);
 
     try {
@@ -70,7 +70,7 @@ const ChatInterface: React.FC = (): JSX.Element => {
         },
       ]);
     } finally {
-      setIsLoading(false);
+      //setIsLoading(false);
       setIsTyping(false);
     }
   };
