@@ -218,14 +218,14 @@ const ChatInterface: React.FC = () => {
       </div>
 
       <div className="input-area flex items-center space-x-2 bg-[#3a3a3a]">
-        <button
+        {/* <button
           onClick={handleVoiceInput}
           className={`voice-button ${
             isListening ? "active" : ""
           } rounded-full p-2 transition-colors`}
         >
           <Mic size={20} />
-        </button>
+        </button> */}
 
         <label className="upload-button cursor-pointer rounded-full bg-gray-200 dark:bg-gray-300 p-2 transition-colors">
           <Upload size={20} />
