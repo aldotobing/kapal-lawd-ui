@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Header from "./components/Header";
 import MessageList from "./components/MessageList";
-import { Mic, Upload, ArrowUp } from "lucide-react";
+import { Upload, ArrowUp } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 
 // Types
@@ -36,7 +36,7 @@ const ChatInterface: React.FC = () => {
   const [currentLanguage, setCurrentLanguage] = useState<Language>(
     LANGUAGES[0]
   );
-  const [isListening, setIsListening] = useState(false);
+  //   const [isListening, setIsListening] = useState(false);
 
   // Refs
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -192,10 +192,10 @@ const ChatInterface: React.FC = () => {
     }
   };
 
-  const handleVoiceInput = () => {
-    setIsListening(!isListening);
-    // Implement voice input logic here
-  };
+  //   const handleVoiceInput = () => {
+  //     setIsListening(!isListening);
+  //     // Implement voice input logic here
+  //   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Implement file upload logic here
