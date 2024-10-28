@@ -12,14 +12,27 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({
   isDarkMode,
   toggleDarkMode,
-  currentLanguage,
+  //currentLanguage,
   languages,
   setCurrentLanguage,
 }) => (
   <div className="p-4 border-b flex justify-between items-center">
-    <h1 className="text-xl font-bold">Kapal Lawd</h1>
+    <h1
+      className="text-xl font-bold flex items-center"
+      style={{
+        fontFamily:
+          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+        fontWeight: 400,
+        color: "#c4c4c4",
+      }}
+    >
+      <i className="fas fa-terminal mr-2" style={{ color: "#c4c4c4" }}></i>{" "}
+      {/* Icon terminal */}
+      Kapal Lawd
+    </h1>
+
     <div className="flex gap-4">
-      <select
+      {/* <select
         value={currentLanguage.code}
         onChange={(e) =>
           setCurrentLanguage(
@@ -34,7 +47,7 @@ const Header: React.FC<HeaderProps> = ({
             {lang.name}
           </option>
         ))}
-      </select>
+      </select> */}
       <button onClick={toggleDarkMode} className="p-2 rounded-full">
         {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
       </button>

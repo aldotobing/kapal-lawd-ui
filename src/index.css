@@ -4,14 +4,28 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes bounce-smooth {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.animate-bounce-smooth {
+  animation: bounce-smooth 1s infinite;
+}
+
 /* Base Styles */
 body {
   margin: 0;
   font-family: "Roboto", sans-serif;
-  background-color: #f5f5f5; /* Tailwind: bg-gray-100 */
-  color: #333; /* Tailwind: text-gray-900 */
+  background-color: #3a3a3a; /* Pastikan ini warna background yang diinginkan */
+  color: #3a3a3a;
   transition: background-color 0.3s ease, color 0.3s ease;
-  line-height: 1.6;
+  line-height: 1.7;
 }
 
 * {
@@ -26,112 +40,117 @@ select {
 
 /* Dark Mode */
 .dark {
-  background-color: #1a1a1a; /* Tailwind: bg-gray-900 */
-  color: #e0e0e0; /* Tailwind: text-gray-300 */
-}
-
-/* Header Styling */
-header {
-  @apply p-4 border-b border-gray-200 bg-white; /* Tailwind: border-b */
+  background-color: #222;
+  color: #e0e0e0;
   transition: background-color 0.3s ease;
 }
 
-.dark header {
-  @apply bg-gray-800 border-b border-gray-700; /* Tailwind: border-gray-700 */
-}
-
-/* Chat Messages */
-.chat-container {
-  @apply p-5 flex-1 overflow-y-auto; /* Tailwind: p-5 */
-  background-color: transparent; /* No background for chat area */
-  overflow-y: scroll;
+.flex-1 {
+  background-color: transparent;
 }
 
 .message {
-  @apply max-w-[70%] mb-3 p-3 rounded-lg break-words shadow-md; /* Tailwind: shadow-md */
+  @apply max-w-[70%] mb-3 p-3 rounded-lg break-words shadow-md transition-colors duration-300;
 }
 
 .message.user {
-  @apply bg-blue-500 text-white self-end; /* Tailwind: bg-blue-500 */
+  @apply bg-blue-500 text-white self-end;
+  border-top-right-radius: 0;
 }
 
 .message.bot {
-  @apply bg-gray-300 text-gray-800 self-start; /* Tailwind: bg-gray-300 */
+  @apply bg-[#3a3a3a] text-gray-200 self-start; /* Ubah warna background ke 3a3a3a dan warna teks ke gray-200 */
+  border-top-left-radius: 0;
 }
 
 .dark .message.bot {
-  @apply bg-gray-600 text-gray-300; /* Tailwind: bg-gray-600 */
+  @apply bg-gray-700 text-gray-300;
 }
 
-/* Typing Animation */
-.typing-dots {
-  @apply flex gap-2 items-center; /* Tailwind: gap-2 */
-}
-
-.typing-dots div {
-  @apply w-2 h-2 bg-gray-500 rounded-full animate-bounce; /* Tailwind: animate-bounce */
-}
-
-/* Input Area */
 .input-area {
-  @apply p-4 border-t bg-white flex gap-2; /* Tailwind: p-4, gap-2 */
-}
-
-.dark .input-area {
-  @apply bg-gray-800 border-t border-gray-700; /* Tailwind: bg-gray-800 */
+  @apply p-4 border-t border-gray-300 dark:border-gray-600 bg-[#3a3a3a] dark:bg-[#3a3a3a] flex gap-2;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .input-field {
-  @apply flex-1 p-3 border rounded-lg focus:outline-none focus:border-blue-500; /* Tailwind: focus:border-blue-500 */
+  @apply flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#4a4a4a] dark:text-white;
+  transition: border-color 0.3s ease;
 }
 
-.input-field:focus {
-  border-color: #4a90e2; /* Stay with custom color */
-}
-
-.dark .input-field {
-  @apply bg-gray-700 text-white border-gray-600; /* Tailwind: bg-gray-700 */
-}
-
-/* Send Button */
 .send-button {
-  @apply bg-blue-500 text-white rounded-full p-3 flex items-center justify-center; /* Tailwind: rounded-full */
+  @apply p-2 rounded-full bg-blue-500 text-white;
+  transition: background-color 0.3s ease;
 }
 
 .send-button:hover {
-  @apply bg-blue-600; /* Tailwind: bg-blue-600 */
+  @apply bg-blue-600;
 }
 
-.send-button:disabled {
-  @apply opacity-50 cursor-not-allowed; /* Tailwind: cursor-not-allowed */
-}
-
-/* Voice Button */
-.voice-button {
-  @apply p-3 rounded-full bg-white transition; /* Tailwind: rounded-full */
+.voice-button,
+.upload-button {
+  @apply p-2 rounded-full bg-gray-200 transition;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .voice-button.active {
-  @apply bg-red-500 text-white; /* Tailwind: bg-red-500 */
+  @apply bg-red-500 text-white;
 }
 
-.voice-button:hover {
-  @apply bg-gray-100; /* Tailwind: bg-gray-100 */
-}
-
-.dark .voice-button {
-  @apply bg-gray-700; /* Tailwind: bg-gray-700 */
-}
-
-/* Upload Button */
-.upload-button {
-  @apply p-3 rounded-full bg-white transition; /* Tailwind: rounded-full */
-}
-
+.voice-button:hover,
 .upload-button:hover {
-  @apply bg-gray-100; /* Tailwind: bg-gray-100 */
+  @apply bg-gray-300;
 }
 
+.dark .voice-button,
 .dark .upload-button {
-  @apply bg-gray-700; /* Tailwind: bg-gray-700 */
+  @apply bg-gray-700;
+}
+
+.typing-dots {
+  @apply flex gap-2 items-center;
+}
+
+.typing-dots div {
+  @apply w-2 h-2 bg-gray-500 rounded-full animate-bounce;
+}
+
+.message-content {
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.message-content h1,
+.message-content h2,
+.message-content h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.message-content ul,
+.message-content ol {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.message-content li {
+  margin: 0.25rem 0;
+}
+
+.message-content blockquote {
+  border-left: 3px solid #666;
+  margin: 1rem 0;
+  padding-left: 1rem;
+  color: #888;
+}
+
+.message-content a {
+  color: #58a6ff;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.message-content a:hover {
+  text-decoration: underline;
+  color: #3182ce;
 }

@@ -1,65 +1,61 @@
 import React from "react";
-import { Message } from "../ChatInterface"; // Import tipe `Message`
+import { format } from "date-fns";
+
+interface Message {
+  id: string;
+  content: string;
+  type: "user" | "assistant";
+  timestamp: Date;
+}
 
 interface MessageListProps {
   messages: Message[];
-  isTyping: boolean;
-  messagesEndRef: React.RefObject<HTMLDivElement>;
-  className?: string; // Tambahin className
+  isLoading: boolean;
 }
 
-const MessageList: React.FC<MessageListProps> = ({
-  messages,
-  isTyping,
-  messagesEndRef,
-  className,
-}) => (
-  <div className={`flex-1 overflow-y-auto p-4 space-y-4 ${className}`}>
-    {messages.map((message) => (
-      <div
-        key={message.id}
-        className={`flex ${
-          message.sender === "user" ? "justify-end" : "justify-start"
-        }`}
-      >
-        <div
-          className={`max-w-[70%] rounded-lg p-3 ${
-            message.sender === "user"
-              ? "bg-blue-500 bg-opacity-60 text-white"
-              : "bg-gray-200 bg-opacity-60 dark:bg-gray-700 dark:bg-opacity-60"
-          }`}
-        >
+const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
+  const MessageBubble = ({ message }: { message: Message }) => {
+    const isUser = message.type === "user";
+
+    return (
+      <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4`}>
+        <div className={`max-w-[80%] ${isUser ? "order-2" : "order-1"}`}>
           <div
-            className="text-sm md:text-base opacity-70 mb-1"
-            style={{ fontSize: "1rem" }}
+            className={`px-4 py-2 rounded-lg text-base ${
+              isUser
+                ? "bg-blue-500 text-white rounded-br-none"
+                : "bg-gray-200 dark:bg-gray-500 dark:text-white rounded-bl-none"
+            }`}
+            style={{ fontSize: "16px" }} // Tambahkan ini buat atur ukuran font
           >
-            {" "}
-            {/* Set font size manual */}
-            {message.username} • {message.timestamp.toLocaleTimeString()}
+            {message.content || (isLoading ? "..." : "Error: Empty message")}
           </div>
-          <div className="text-base md:text-lg" style={{ fontSize: "1.2rem" }}>
-            {" "}
-            {/* Set font size manual */}
-            {message.text}
+          <div
+            className={`text-xs text-gray-500 mt-1 ${
+              isUser ? "text-right" : "text-left"
+            }`}
+          >
+            {format(message.timestamp, "HH:mm")}
           </div>
         </div>
       </div>
-    ))}
-    {isTyping && (
-      <div className="flex gap-2 items-center text-gray-500">
-        <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
-        <div
-          className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
-          style={{ animationDelay: "0.2s" }}
-        ></div>
-        <div
-          className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
-          style={{ animationDelay: "0.4s" }}
-        ></div>
-      </div>
-    )}
-    <div ref={messagesEndRef} />
-  </div>
-);
+    );
+  };
+
+  return (
+    <div className="p-4 space-y-4">
+      {messages.map((message) => (
+        <MessageBubble key={message.id} message={message} />
+      ))}
+      {isLoading && (
+        <div className="flex justify-start">
+          <div className="bg-[#3a3a3a] rounded-lg px-4 py-2 animate-pulse">
+            {/* <div className="h-4 w-8 bg-gray-300 dark:bg-gray-600 rounded"></div> */}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default MessageList;

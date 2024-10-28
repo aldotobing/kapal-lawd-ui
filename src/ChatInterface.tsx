@@ -2,13 +2,17 @@ import React, { useState, useRef, useEffect } from "react";
 import Header from "./components/Header";
 import MessageList from "./components/MessageList";
 import { Mic, Upload, ArrowUp } from "lucide-react";
+import { v4 as uuidv4 } from "uuid";
+import TypingIndicator from "./components/TypingIndicator";
 
-export interface Message {
+// Types
+type MessageType = "user" | "assistant";
+
+interface Message {
   id: string;
-  text: string;
-  sender: "user" | "bot" | "bot-temp";
+  content: string;
+  type: MessageType;
   timestamp: Date;
-  username: string;
 }
 
 interface Language {
@@ -16,57 +20,79 @@ interface Language {
   name: string;
 }
 
-const ChatInterface: React.FC = (): JSX.Element => {
+// Constants
+const LANGUAGES: Language[] = [
+  { code: "en", name: "English" },
+  { code: "id", name: "Bahasa Indonesia" },
+];
+
+const API_URL = "https://kapal-lawd-be.aldo-tobing.workers.dev/";
+
+const ChatInterface: React.FC = () => {
+  // State
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [currentLanguage, setCurrentLanguage] = useState<Language>({
-    code: "en",
-    name: "English",
-  });
+  const [currentLanguage, setCurrentLanguage] = useState<Language>(
+    LANGUAGES[0]
+  );
   const [isListening, setIsListening] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const languages: Language[] = [
-    { code: "en", name: "English" },
-    { code: "id", name: "Bahasa Indonesia" },
-  ];
+  // Refs
+  const chatEndRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Scroll otomatis setiap kali pesan berubah
+  // Effects
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    scrollToBottom();
   }, [messages]);
 
-  const handleSend = async () => {
-    if (!inputText.trim()) return;
-
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      text: inputText,
-      sender: "user",
-      timestamp: new Date(),
-      username: "User",
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
     };
-    setMessages((prev) => [...prev, newMessage]);
-    setInputText("");
-    setIsTyping(true);
+  }, []);
 
-    try {
-      const stream = await fetchBotResponse(newMessage.text);
-      await processStream(stream, newMessage.id);
-    } catch (error) {
-      console.error("Error fetching bot response:", error);
-      addBotMessage("Something went wrong, please try again.");
-    } finally {
-      setIsTyping(false);
-    }
+  // Helper Functions
+  const scrollToBottom = () => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const fetchBotResponse = async (userInput: string) => {
-    const response = await fetch(
-      "https://kapal-lawd-be.aldo-tobing.workers.dev/",
-      {
+  const createMessage = (content: string, type: MessageType): Message => ({
+    id: uuidv4(),
+    content,
+    type,
+    timestamp: new Date(),
+  });
+
+  // Message Handlers
+  const addMessage = (content: string, type: MessageType) => {
+    setMessages((prev) => [...prev, createMessage(content, type)]);
+  };
+
+  const updateLastAssistantMessage = (content: string) => {
+    setMessages((prev) => {
+      const newMessages = [...prev];
+      const lastAssistantMessage = newMessages
+        .filter((m) => m.type === "assistant")
+        .pop();
+
+      if (lastAssistantMessage) {
+        lastAssistantMessage.content = content;
+      }
+      return newMessages;
+    });
+  };
+
+  // API Interaction
+  const sendMessageToAPI = async (userInput: string) => {
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = new AbortController();
+
+    try {
+      const response = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -75,155 +101,164 @@ const ChatInterface: React.FC = (): JSX.Element => {
             { role: "user", content: userInput },
           ],
         }),
+        signal: abortControllerRef.current.signal,
+      });
+
+      if (!response.ok || !response.body) {
+        throw new Error("API request failed");
       }
-    );
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch bot response");
+      return response.body;
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") {
+        console.log("Request was aborted");
+        return null;
+      }
+      throw error;
     }
-
-    return response.body;
   };
 
   const processStream = async (
-    stream: ReadableStream<Uint8Array> | null,
-    tempMessageId: string
+    stream: ReadableStream<Uint8Array>,
+    onResponse: (response: string) => void
   ) => {
-    if (!stream) return;
-
     const reader = stream.getReader();
     const decoder = new TextDecoder();
-    let botResponse = "";
+    let accumulatedResponse = "";
 
-    addTemporaryMessage(tempMessageId);
+    try {
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
 
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split("\n");
 
-      const chunk = decoder.decode(value, { stream: true });
-      const messages = chunk.split("\n");
+        for (const line of lines) {
+          if (line.startsWith("data:")) {
+            const jsonStr = line.slice(5).trim();
+            if (jsonStr === "[DONE]") continue;
 
-      updateBotResponse(messages, tempMessageId, botResponse);
-    }
+            try {
+              const data = JSON.parse(jsonStr);
+              if (data.response) {
+                accumulatedResponse += data.response;
 
-    finalizeBotResponse(tempMessageId, botResponse);
-  };
-
-  const addTemporaryMessage = (tempMessageId: string) => {
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: tempMessageId,
-        text: "",
-        sender: "bot-temp",
-        timestamp: new Date(),
-        username: "AI Assistant",
-      },
-    ]);
-  };
-
-  const updateBotResponse = (
-    messages: string[],
-    tempMessageId: string,
-    botResponse: string
-  ) => {
-    messages.forEach((message) => {
-      if (message.startsWith("data:")) {
-        const jsonStr = message.slice(5).trim();
-
-        if (jsonStr === "[DONE]") return;
-
-        try {
-          const data = JSON.parse(jsonStr);
-          if (data.response) {
-            botResponse += data.response;
-            setMessages((prev) =>
-              prev.map((msg) =>
-                msg.id === tempMessageId ? { ...msg, text: botResponse } : msg
-              )
-            );
+                // Debounce update
+                setTimeout(() => {
+                  onResponse(accumulatedResponse);
+                }, 100); // 100 ms delay
+              }
+            } catch (error) {
+              console.error("Failed to parse JSON:", error);
+            }
           }
-        } catch (error) {
-          console.error("Error parsing JSON:", error);
         }
       }
-    });
+    } finally {
+      reader.releaseLock();
+    }
   };
 
-  const finalizeBotResponse = (tempMessageId: string, botResponse: string) => {
-    setMessages((prev) => [
-      ...prev.filter((msg) => msg.id !== tempMessageId),
-      {
-        id: Date.now().toString(),
-        text: botResponse,
-        sender: "bot",
-        timestamp: new Date(),
-        username: "AI Assistant",
-      },
-    ]);
+  // Event Handlers
+  const handleSendMessage = async () => {
+    const trimmedInput = inputText.trim();
+    if (!trimmedInput || isLoading) return; // Ini akan mencegah masuk ke sini jika isLoading sudah true
+
+    setInputText("");
+    setIsLoading(true);
+    addMessage(trimmedInput, "user");
+    addMessage("", "assistant"); // Ini hanya menambah pesan assistant, jangan panggil lagi
+
+    try {
+      const stream = await sendMessageToAPI(trimmedInput);
+      if (stream) {
+        await processStream(stream, (response) => {
+          updateLastAssistantMessage(response);
+        });
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+      updateLastAssistantMessage(
+        "Sorry, I encountered an error. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const addBotMessage = (text: string) => {
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: Date.now().toString(),
-        text,
-        sender: "bot",
-        timestamp: new Date(),
-        username: "Kapal Lawd",
-      },
-    ]);
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
   };
 
-  const handleVoiceInput = () => setIsListening(!isListening);
+  const handleVoiceInput = () => {
+    setIsListening(!isListening);
+    // Implement voice input logic here
+  };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Implement file upload logic here
+  };
+
+  // Render
   return (
     <div className={`h-screen flex flex-col ${isDarkMode ? "dark" : ""}`}>
       <Header
         isDarkMode={isDarkMode}
         toggleDarkMode={() => setIsDarkMode(!isDarkMode)}
         currentLanguage={currentLanguage}
-        languages={languages}
+        languages={LANGUAGES}
         setCurrentLanguage={setCurrentLanguage}
       />
-      <MessageList
-        messages={messages}
-        isTyping={isTyping}
-        messagesEndRef={messagesEndRef}
-        className="chat-container"
-      />
-      <div className="input-area flex flex-wrap items-center gap-2 p-2 bg-white rounded-md">
+
+      <div className="flex-1 overflow-y-auto bg-[#2a2a2a] dark:bg-[#2a2a2a] chat-container">
+        <MessageList messages={messages} isLoading={isLoading} />
+        <div ref={chatEndRef} />
+      </div>
+
+      <div className="input-area flex items-center space-x-2 bg-[#3a3a3a]">
         <button
           onClick={handleVoiceInput}
           className={`voice-button ${
             isListening ? "active" : ""
-          } flex-shrink-0`}
+          } rounded-full p-2 transition-colors`}
         >
           <Mic size={20} />
         </button>
-        <label className="upload-button flex-shrink-0">
+
+        <label className="upload-button cursor-pointer rounded-full bg-gray-200 dark:bg-gray-300 p-2 transition-colors">
           <Upload size={20} />
-          <input type="file" className="hidden" />
+          <input
+            type="file"
+            className="hidden"
+            onChange={handleFileUpload}
+            accept="image/*,.pdf,.doc,.docx"
+          />
         </label>
+
         <input
           type="text"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-          onKeyPress={(e) => e.key === "Enter" && handleSend()}
-          placeholder="Type your message..."
-          className="input-field flex-grow min-w-[150px] md:min-w-[200px] text-base"
+          onKeyPress={handleKeyPress}
+          placeholder={`Type a message in ${currentLanguage.name}...`}
+          className="input-field flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#4a4a4a] dark:text-white"
+          disabled={isLoading}
         />
+
         <button
-          onClick={handleSend}
-          disabled={!inputText.trim()}
-          className="send-button flex-shrink-0"
+          onClick={handleSendMessage}
+          disabled={!inputText.trim() || isLoading}
+          className={`send-button rounded-full p-2 bg-blue-500 text-white transition-colors ${
+            inputText.trim() && !isLoading ? "" : "cursor-not-allowed"
+          }`}
         >
           <ArrowUp size={20} />
         </button>
       </div>
-      <div ref={messagesEndRef} />
     </div>
   );
 };
