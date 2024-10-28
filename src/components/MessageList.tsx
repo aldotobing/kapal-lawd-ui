@@ -50,7 +50,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
       {isLoading && (
         <div className="flex justify-start">
           <div className="bg-[#3a3a3a] rounded-lg px-4 py-2 animate-pulse">
-            {/* <div className="h-4 w-8 bg-gray-300 dark:bg-gray-600 rounded"></div> */}
+            <div className="h-4 w-8 bg-gray-300 dark:bg-gray-600 rounded"></div>
           </div>
         </div>
       )}

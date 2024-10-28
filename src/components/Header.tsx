@@ -16,7 +16,7 @@ const Header: React.FC<HeaderProps> = ({
   languages,
   setCurrentLanguage,
 }) => (
-  <div className="p-4 border-b flex justify-between items-center">
+  <div className="p-4 flex justify-between items-center">
     <h1
       className="text-xl font-bold flex items-center"
       style={{
@@ -27,32 +27,22 @@ const Header: React.FC<HeaderProps> = ({
       }}
     >
       <i className="fas fa-terminal mr-2" style={{ color: "#c4c4c4" }}></i>{" "}
-      {/* Icon terminal */}
       Kapal Lawd GPT
     </h1>
 
-    <div className="flex gap-4">
-      {/* <select
-        value={currentLanguage.code}
-        onChange={(e) =>
-          setCurrentLanguage(
-            languages.find((lang) => lang.code === e.target.value) ||
-              languages[0]
-          )
-        }
-        className="rounded border p-1"
-      >
-        {languages.map((lang) => (
-          <option key={lang.code} value={lang.code}>
-            {lang.name}
-          </option>
-        ))}
-      </select> */}
+    <div
+      className="flex gap-4 p-2 rounded-lg"
+      style={{ backgroundColor: "#2a2a2a" }}
+    >
       <button onClick={toggleDarkMode} className="p-2 rounded-full">
-        {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+        {isDarkMode ? (
+          <Sun size={20} color="#ffffff" />
+        ) : (
+          <Moon size={20} color="#ffffff" />
+        )}
       </button>
       <button className="p-2 rounded-full">
-        <Settings size={20} />
+        <Settings size={20} color="#ffffff" />
       </button>
     </div>
   </div>

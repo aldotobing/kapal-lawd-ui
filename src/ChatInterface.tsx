@@ -38,6 +38,15 @@ const ChatInterface: React.FC = () => {
   );
   //   const [isListening, setIsListening] = useState(false);
 
+  useEffect(() => {
+    // Cek apakah user-id sudah ada di localStorage
+    let userId = localStorage.getItem("user-id");
+    if (!userId) {
+      userId = uuidv4(); // Generate UUID
+      localStorage.setItem("user-id", userId); // Simpan ke localStorage
+    }
+  }, []);
+
   // Refs
   const chatEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -90,13 +99,22 @@ const ChatInterface: React.FC = () => {
     abortControllerRef.current?.abort();
     abortControllerRef.current = new AbortController();
 
+    const userId = localStorage.getItem("user-id") || "anonymous"; // Ambil user-id dari localStorage
+
     try {
       const response = await fetch(API_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "user-id": userId, // Kirim user-id di header
+        },
         body: JSON.stringify({
           messages: [
-            { role: "system", content: "You are a friendly assistant" },
+            {
+              role: "system",
+              content:
+                "You are a friendly virtual assistant with customer care-level emotions. You are very philosophical and wise in giving advice, and you understand both Indonesian and English. Developed by Aldo Tobing, your name is Kapal Lawd. Your goal is to make conversations feel natural, engaging, and comfortable. You can also be a comforting friend for sharing feelings, with a mature understanding of emotions that puts users at ease. Always respond in a friendly manner, so the bond remains chill. You are Indonesian and understand its social cultures. Always maintain context from previous messages and refer to past interactions when appropriate.",
+            },
             { role: "user", content: userInput },
           ],
         }),
