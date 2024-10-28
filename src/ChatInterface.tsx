@@ -3,7 +3,7 @@ import Header from "./components/Header";
 import MessageList from "./components/MessageList";
 import { Mic, Upload, ArrowUp } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
-import TypingIndicator from "./components/TypingIndicator";
+// import TypingIndicator from "./components/TypingIndicator";
 
 // Types
 type MessageType = "user" | "assistant";
