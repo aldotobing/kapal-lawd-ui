@@ -26,7 +26,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
                 ? "bg-blue-500 text-white rounded-br-none"
                 : "bg-gray-200 dark:bg-[#3a3a3a] dark:text-white rounded-bl-none"
             }`}
-            style={{ fontSize: "16px" }} // Tambahkan ini buat atur ukuran font
+            style={{ fontSize: "18px" }} // Tambahkan ini buat atur ukuran font
           >
             {message.content || (isLoading ? "..." : "Error: Empty message")}
           </div>

@@ -3,7 +3,6 @@ import Header from "./components/Header";
 import MessageList from "./components/MessageList";
 import { Mic, Upload, ArrowUp } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
-// import TypingIndicator from "./components/TypingIndicator";
 
 // Types
 type MessageType = "user" | "assistant";
@@ -244,7 +243,7 @@ const ChatInterface: React.FC = () => {
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           onKeyPress={handleKeyPress}
-          placeholder={`Type a message in ${currentLanguage.name}...`}
+          placeholder={`Apa yang bisa saya bantu?`}
           className="input-field flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#4a4a4a] dark:text-white"
           disabled={isLoading}
         />

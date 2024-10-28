@@ -28,7 +28,7 @@ const Header: React.FC<HeaderProps> = ({
     >
       <i className="fas fa-terminal mr-2" style={{ color: "#c4c4c4" }}></i>{" "}
       {/* Icon terminal */}
-      Kapal Lawd
+      Kapal Lawd GPT
     </h1>
 
     <div className="flex gap-4">
