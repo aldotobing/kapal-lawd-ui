@@ -123,7 +123,7 @@ const ChatInterface: React.FC = () => {
   ) => {
     const reader = stream.getReader();
     const decoder = new TextDecoder();
-    let accumulatedResponse = "";
+    let accumulatedResponse = ""; // Deklarasi tetap di sini.
 
     try {
       while (true) {
@@ -143,10 +143,9 @@ const ChatInterface: React.FC = () => {
               if (data.response) {
                 accumulatedResponse += data.response;
 
-                // Debounce update
-                setTimeout(() => {
-                  onResponse(accumulatedResponse);
-                }, 100); // 100 ms delay
+                // Hindari penggunaan timeout langsung dalam loop, gunakan async queue.
+                await Promise.resolve(); // Menunggu agar event loop tidak tersendat.
+                onResponse(accumulatedResponse); // Update UI dengan respons terbaru.
               }
             } catch (error) {
               console.error("Failed to parse JSON:", error);
