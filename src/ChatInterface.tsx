@@ -12,6 +12,7 @@ interface Message {
   content: string;
   type: MessageType;
   timestamp: Date;
+  isImage?: boolean;
 }
 
 interface Language {
@@ -26,6 +27,57 @@ const LANGUAGES: Language[] = [
 ];
 
 const API_URL = "https://kapal-lawd-be.aldo-tobing.workers.dev/";
+const IMAGE_API_URL = "https://image-gen.aldo-tobing.workers.dev/";
+
+// Function to check if the input is a request for an image
+const isImageRequest = (input: string) => {
+  const lowerInput = input.toLowerCase();
+  return (
+    lowerInput.includes("make an image") ||
+    lowerInput.includes("make a picture of") ||
+    lowerInput.includes("a picture of") ||
+    lowerInput.includes("buatkan saya gambar") ||
+    lowerInput.includes("create an image") ||
+    lowerInput.includes("generate an image") ||
+    lowerInput.includes("gambarkan") ||
+    lowerInput.includes("gambar") ||
+    lowerInput.includes("tolong buatkan gambar") ||
+    lowerInput.includes("saya butuh gambar") ||
+    lowerInput.includes("coba gambarkan") ||
+    lowerInput.includes("bisa bikin gambar") ||
+    lowerInput.includes("gambar tentang") ||
+    lowerInput.includes("gambarkan sesuatu yang") ||
+    lowerInput.includes("bikin gambar") ||
+    lowerInput.includes("tolong buatkan saya gambar") ||
+    lowerInput.includes("buatkan saya gambar")
+  );
+};
+
+// Function to send image request to API
+const sendImageRequest = async (prompt: string) => {
+  try {
+    const response = await fetch(IMAGE_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ prompt }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Image generation failed");
+    }
+
+    // Asumsikan response berupa blob (gambar)
+    const blob = await response.blob(); // Ambil response sebagai blob
+    const imageUrl = URL.createObjectURL(blob); // Buat URL untuk gambar
+
+    return imageUrl; // Kembalikan URL gambar
+  } catch (error) {
+    console.error("Error generating image:", error);
+    return null;
+  }
+};
 
 const ChatInterface: React.FC = () => {
   // State
@@ -36,6 +88,8 @@ const ChatInterface: React.FC = () => {
   const [currentLanguage, setCurrentLanguage] = useState<Language>(
     LANGUAGES[0]
   );
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+
   //   const [isListening, setIsListening] = useState(false);
 
   useEffect(() => {
@@ -68,19 +122,31 @@ const ChatInterface: React.FC = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const createMessage = (content: string, type: MessageType): Message => ({
+  const createMessage = (
+    content: string,
+    type: MessageType,
+    isImage: boolean = false
+  ): Message => ({
     id: uuidv4(),
     content,
     type,
     timestamp: new Date(),
+    isImage,
   });
 
   // Message Handlers
-  const addMessage = (content: string, type: MessageType) => {
-    setMessages((prev) => [...prev, createMessage(content, type)]);
+  const addMessage = (
+    content: string,
+    type: MessageType,
+    isImage: boolean = false
+  ) => {
+    setMessages((prev) => [...prev, createMessage(content, type, isImage)]);
   };
 
-  const updateLastAssistantMessage = (content: string) => {
+  const updateLastAssistantMessage = (
+    content: string,
+    isImage: boolean = false
+  ) => {
     setMessages((prev) => {
       const newMessages = [...prev];
       const lastAssistantMessage = newMessages
@@ -89,6 +155,7 @@ const ChatInterface: React.FC = () => {
 
       if (lastAssistantMessage) {
         lastAssistantMessage.content = content;
+        lastAssistantMessage.isImage = isImage;
       }
       return newMessages;
     });
@@ -179,24 +246,34 @@ const ChatInterface: React.FC = () => {
   // Event Handlers
   const handleSendMessage = async () => {
     const trimmedInput = inputText.trim();
-    if (!trimmedInput || isLoading) return; // Ini akan mencegah masuk ke sini jika isLoading sudah true
+    if (!trimmedInput || isLoading) return;
 
     setInputText("");
     setIsLoading(true);
     addMessage(trimmedInput, "user");
-    addMessage("", "assistant"); // Ini hanya menambah pesan assistant, jangan panggil lagi
+    addMessage("", "assistant");
 
     try {
-      const stream = await sendMessageToAPI(trimmedInput);
-      if (stream) {
-        await processStream(stream, (response) => {
-          updateLastAssistantMessage(response);
-        });
+      if (isImageRequest(trimmedInput)) {
+        const generatedImageUrl = await sendImageRequest(trimmedInput);
+        if (generatedImageUrl) {
+          updateLastAssistantMessage(generatedImageUrl, true); // Update message terakhir
+          setImageUrl(generatedImageUrl); // Set imageUrl
+        } else {
+          updateLastAssistantMessage("Sorry, I couldn't generate the image.");
+        }
+      } else {
+        const stream = await sendMessageToAPI(trimmedInput);
+        if (stream) {
+          await processStream(stream, (response) => {
+            updateLastAssistantMessage(response);
+          });
+        }
       }
     } catch (error) {
       console.error("Error sending message:", error);
       updateLastAssistantMessage(
-        "Sorry, I encountered an error. Please try again."
+        "Sorry, an error occurred while sending the message. Please try again."
       );
     } finally {
       setIsLoading(false);
@@ -232,6 +309,14 @@ const ChatInterface: React.FC = () => {
 
       <div className="flex-1 overflow-y-auto bg-[#2a2a2a] dark:bg-[#2a2a2a] chat-container">
         <MessageList messages={messages} isLoading={isLoading} />
+        {imageUrl && (
+          <img
+            src={imageUrl}
+            alt="Generated"
+            className="mt-4 ml-10 w-150 h-150 object-cover"
+          />
+        )}
+
         <div ref={chatEndRef} />
       </div>
 
