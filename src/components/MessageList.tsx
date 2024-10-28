@@ -24,7 +24,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
             className={`px-4 py-2 rounded-lg text-base ${
               isUser
                 ? "bg-blue-500 text-white rounded-br-none"
-                : "bg-gray-200 dark:bg-gray-500 dark:text-white rounded-bl-none"
+                : "bg-gray-200 dark:bg-[#3a3a3a] dark:text-white rounded-bl-none"
             }`}
             style={{ fontSize: "16px" }} // Tambahkan ini buat atur ukuran font
           >
