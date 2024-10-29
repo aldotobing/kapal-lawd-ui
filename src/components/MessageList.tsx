@@ -17,7 +17,7 @@ interface MessageListProps {
 }
 
 const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
-  //const [showThinking, setShowThinking] = useState(false); // State untuk nampilkan "Thinking"
+  const [showThinking, setShowThinking] = useState(false); // State untuk nampilkan "Thinking"
   const [hasSentMessage, setHasSentMessage] = useState(false); // Track pengiriman pesan
 
   // Ketika ada pesan baru, set state hasSentMessage jadi true
