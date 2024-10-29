@@ -292,18 +292,19 @@ const ChatInterface: React.FC = () => {
   const handleSendMessage = async () => {
     const trimmedInput = inputText.trim();
     console.log("Trimmed Input:", trimmedInput);
+
     if (!trimmedInput || isLoading) return;
 
-    setInputText("");
-    setIsLoading(true);
-    addMessage(trimmedInput, "user");
-    addMessage("", "assistant");
+    setInputText(""); // Reset input text
+    setIsLoading(true); // Set loading true
+    addMessage(trimmedInput, "user"); // Tambah pesan user
+    addMessage("", "assistant"); // Tambah pesan kosong untuk assistant
 
     try {
       if (isImageRequest(trimmedInput)) {
         const generatedImageUrl = await sendImageRequest(trimmedInput);
         if (generatedImageUrl) {
-          updateLastAssistantMessage(generatedImageUrl); // Update message terakhir
+          updateLastAssistantMessage(generatedImageUrl); // Update pesan terakhir dengan URL gambar
           setImageUrl(generatedImageUrl); // Set imageUrl
         } else {
           updateLastAssistantMessage("Sorry, I couldn't generate the image.");
@@ -312,7 +313,7 @@ const ChatInterface: React.FC = () => {
         const stream = await sendMessageToAPI(trimmedInput);
         if (stream) {
           await processStream(stream, (response) => {
-            updateLastAssistantMessage(response);
+            updateLastAssistantMessage(response); // Update pesan dari assistant
           });
         }
       }
@@ -322,7 +323,7 @@ const ChatInterface: React.FC = () => {
         "Sorry, an error occurred while sending the message. Please try again."
       );
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Set loading false setelah selesai
     }
   };
 
@@ -354,7 +355,11 @@ const ChatInterface: React.FC = () => {
       />
 
       <div className="flex-1 overflow-y-auto bg-[#2a2a2a] dark:bg-[#2a2a2a] chat-container">
-        <MessageList messages={messages} isLoading={isLoading} />
+        <MessageList
+          messages={messages}
+          isLoading={isLoading}
+          onSendMessage={handleSendMessage}
+        />
         {imageUrl && (
           <img
             src={imageUrl}

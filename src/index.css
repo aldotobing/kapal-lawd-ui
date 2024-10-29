@@ -4,6 +4,24 @@
 @tailwind components;
 @tailwind utilities;
 
+.blink {
+  animation: blink-animation 1.4s ease-in-out infinite;
+  animation-direction: alternate;
+  margin-left: 5px;
+}
+
+@keyframes blink-animation {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.1; /* Adjust this value for more or less opacity */
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
 @keyframes bounce-smooth {
   0%,
   100% {
@@ -231,12 +249,4 @@ select {
 .message-content a:hover {
   text-decoration: underline;
   color: #3182ce;
-}
-
-.message-content strong {
-  font-weight: 600;
-}
-
-.message-content em {
-  font-style: italic;
 }

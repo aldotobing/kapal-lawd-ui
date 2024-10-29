@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { format } from "date-fns";
-import { marked } from "marked"; // Pastikan marked diimport
+import { marked } from "marked";
 import DOMPurify from "dompurify";
 
 interface Message {
@@ -12,10 +12,30 @@ interface Message {
 
 interface MessageListProps {
   messages: Message[];
-  isLoading: boolean;
+  isLoading: boolean | string; // Status loading dari parent component
+  onSendMessage: () => void; // Callback untuk mengirim pesan
 }
 
 const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
+  const [showThinking, setShowThinking] = useState(false); // State untuk nampilkan "Thinking"
+  const [hasSentMessage, setHasSentMessage] = useState(false); // Track pengiriman pesan
+
+  // Ketika ada pesan baru, set state hasSentMessage jadi true
+  useEffect(() => {
+    if (messages.length > 0) {
+      setHasSentMessage(true);
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    // Hanya munculkan "Thinking..." saat loading setelah pesan dikirim
+    if (isLoading && hasSentMessage) {
+      setShowThinking(true);
+    } else {
+      setShowThinking(false);
+    }
+  }, [isLoading, hasSentMessage]);
+
   const MessageBubble = ({ message }: { message: Message }) => {
     const isUser = message.type === "user";
 
@@ -31,15 +51,12 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
               }`}
               style={{ fontSize: "18px" }}
             >
-              {/* Render markdown yang sudah disanitasi */}
               {message.content ? (
                 <div
                   dangerouslySetInnerHTML={{
-                    __html: DOMPurify.sanitize(marked(message.content.trim())), // Sanitasi konten
+                    __html: DOMPurify.sanitize(marked(message.content.trim())),
                   }}
                 />
-              ) : isLoading ? (
-                <div className="spinner"></div>
               ) : (
                 "Error: Empty message"
               )}
@@ -64,8 +81,9 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
       ))}
       {isLoading && (
         <div className="flex justify-start">
-          <div className="bg-[#3a3a3a] rounded-lg px-4 py-2 animate-pulse">
-            <div className="h-4 w-8 bg-gray-300 dark:bg-gray-600 rounded"></div>
+          <div className="bg-[#2a2a2a] rounded-lg px-4 py-2">
+            <span className="text-white blink">Thinking...</span>{" "}
+            {/* Render pesan loading dengan blinking */}
           </div>
         </div>
       )}
