@@ -30,27 +30,28 @@ const API_URL = "https://kapal-lawd-be.aldo-tobing.workers.dev/";
 const IMAGE_API_URL = "https://image-gen.aldo-tobing.workers.dev/";
 
 // Function to check if the input is a request for an image
-const isImageRequest = (input: string) => {
+const isImageRequest = (input: string): boolean => {
+  const keywords = [
+    "make an image",
+    "make a picture of",
+    "a picture of",
+    "create an image",
+    "generate an image",
+    "gambarkan",
+    "gambar",
+    "buatkan saya gambar",
+    "tolong buatkan gambar",
+    "saya butuh gambar",
+    "coba gambarkan",
+    "bisa bikin gambar",
+    "gambar tentang",
+    "gambarkan sesuatu yang",
+    "bikin gambar",
+    "tolong buatkan saya gambar",
+  ];
+
   const lowerInput = input.toLowerCase();
-  return (
-    lowerInput.includes("make an image") ||
-    lowerInput.includes("make a picture of") ||
-    lowerInput.includes("a picture of") ||
-    lowerInput.includes("buatkan saya gambar") ||
-    lowerInput.includes("create an image") ||
-    lowerInput.includes("generate an image") ||
-    lowerInput.includes("gambarkan") ||
-    lowerInput.includes("gambar") ||
-    lowerInput.includes("tolong buatkan gambar") ||
-    lowerInput.includes("saya butuh gambar") ||
-    lowerInput.includes("coba gambarkan") ||
-    lowerInput.includes("bisa bikin gambar") ||
-    lowerInput.includes("gambar tentang") ||
-    lowerInput.includes("gambarkan sesuatu yang") ||
-    lowerInput.includes("bikin gambar") ||
-    lowerInput.includes("tolong buatkan saya gambar") ||
-    lowerInput.includes("buatkan saya gambar")
-  );
+  return keywords.some((keyword) => lowerInput.includes(keyword));
 };
 
 // Function to send image request to API
@@ -143,97 +144,141 @@ const ChatInterface: React.FC = () => {
     setMessages((prev) => [...prev, createMessage(content, type, isImage)]);
   };
 
-  const updateLastAssistantMessage = (
-    content: string,
-    isImage: boolean = false
-  ) => {
+  const updateLastAssistantMessage = (rawContent: string) => {
+    const { content } = formatMessage(rawContent);
     setMessages((prev) => {
       const newMessages = [...prev];
-      const lastAssistantMessage = newMessages
+      const lastAssistantMessageIndex = newMessages
+        .map((m, i) => ({ ...m, index: i }))
         .filter((m) => m.type === "assistant")
         .pop();
 
-      if (lastAssistantMessage) {
-        lastAssistantMessage.content = content;
-        lastAssistantMessage.isImage = isImage;
+      if (lastAssistantMessageIndex) {
+        newMessages[lastAssistantMessageIndex.index].content = content;
       }
       return newMessages;
     });
   };
+
+  const sanitizeInput = (input: any) =>
+    typeof input === "string" ? input : String(input || "");
 
   // API Interaction
   const sendMessageToAPI = async (userInput: string) => {
     abortControllerRef.current?.abort();
     abortControllerRef.current = new AbortController();
 
-    const userId = localStorage.getItem("user-id") || "anonymous"; // Ambil user-id dari localStorage
+    const userId = localStorage.getItem("user-id") || "anonymous";
+    const sanitizedInput = sanitizeInput(userInput);
+    const messages = [{ role: "user", content: sanitizedInput }];
 
     try {
       const response = await fetch(API_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "user-id": userId, // Kirim user-id di header
         },
-        body: JSON.stringify({
-          messages: [
-            {
-              role: "system",
-              content:
-                "You are a friendly virtual assistant with customer care-level emotions. You are very philosophical and wise in giving advice, and you understand both Indonesian and English. Developed by Aldo Tobing, your name is Kapal Lawd. Your goal is to make conversations feel natural, engaging, and comfortable. You can also be a comforting friend for sharing feelings, with a mature understanding of emotions that puts users at ease. Always respond in a friendly manner, so the bond remains chill. You are Indonesian and understand its social cultures. Always maintain context from previous messages and refer to past interactions when appropriate.",
-            },
-            { role: "user", content: userInput },
-          ],
-        }),
+        body: JSON.stringify({ user_id: userId, messages }),
         signal: abortControllerRef.current.signal,
       });
 
-      if (!response.ok || !response.body) {
+      if (!response.ok) {
+        let errorBody;
+        try {
+          errorBody = await response.text();
+        } catch (textError) {
+          console.error("Failed to read response body:", textError);
+          errorBody = "Could not retrieve error details";
+        }
+        console.error("Error Response Status:", response.status);
+        console.error("Error Response Body:", errorBody);
         throw new Error("API request failed");
       }
 
-      return response.body;
+      return response.body; // Kembaliin body dari response untuk diproses
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") {
         console.log("Request was aborted");
         return null;
       }
+      console.error("Error sending message:", error);
       throw error;
     }
   };
 
+  // Update fungsi processStream
   const processStream = async (
     stream: ReadableStream<Uint8Array>,
     onResponse: (response: string) => void
   ) => {
     const reader = stream.getReader();
     const decoder = new TextDecoder();
-    let accumulatedResponse = ""; // Deklarasi tetap di sini.
+    let buffer = "";
+    let accumulatedResponse = "";
 
     try {
+      let jsonStr;
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split("\n");
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
 
         for (const line of lines) {
-          if (line.startsWith("data:")) {
-            const jsonStr = line.slice(5).trim();
-            if (jsonStr === "[DONE]") continue;
+          if (line.trim() === "") continue;
 
+          if (line.startsWith("data: ")) {
             try {
-              const data = JSON.parse(jsonStr);
-              if (data.response) {
-                accumulatedResponse += data.response;
+              jsonStr = line.slice(6).trim(); // Remove 'data: ' prefix
 
-                // Hindari penggunaan timeout langsung dalam loop, gunakan async queue.
-                await Promise.resolve(); // Menunggu agar event loop tidak tersendat.
-                onResponse(accumulatedResponse); // Update UI dengan respons terbaru.
+              // Check for outer [DONE] signal
+              if (jsonStr === "[DONE]") break;
+
+              const outerData = JSON.parse(jsonStr);
+
+              // Check for inner [DONE] signal
+              if (outerData.response === "data: [DONE]\n\n") {
+                break;
+              }
+
+              // Parse the nested data string
+              if (
+                outerData.response &&
+                outerData.response.startsWith("data: ")
+              ) {
+                const innerJsonStr = outerData.response.slice(6).trim();
+
+                // Skip if it's a [DONE] signal
+                if (innerJsonStr === "[DONE]") {
+                  break;
+                }
+
+                try {
+                  const innerData = JSON.parse(innerJsonStr);
+
+                  if (innerData.response) {
+                    accumulatedResponse += innerData.response;
+                    onResponse(accumulatedResponse);
+                  }
+                } catch (innerError) {
+                  // Only log if it's not a [DONE] signal
+                  if (innerJsonStr !== "[DONE]") {
+                    console.warn(
+                      "Failed to parse inner JSON:",
+                      innerJsonStr,
+                      innerError
+                    );
+                  }
+                }
               }
             } catch (error) {
-              console.error("Failed to parse JSON:", error);
+              // Only log if it's not a [DONE] signal
+              if (jsonStr !== "[DONE]") {
+                console.warn("Failed to parse outer JSON:", line, error);
+              }
             }
           }
         }
@@ -246,6 +291,7 @@ const ChatInterface: React.FC = () => {
   // Event Handlers
   const handleSendMessage = async () => {
     const trimmedInput = inputText.trim();
+    console.log("Trimmed Input:", trimmedInput);
     if (!trimmedInput || isLoading) return;
 
     setInputText("");
@@ -257,7 +303,7 @@ const ChatInterface: React.FC = () => {
       if (isImageRequest(trimmedInput)) {
         const generatedImageUrl = await sendImageRequest(trimmedInput);
         if (generatedImageUrl) {
-          updateLastAssistantMessage(generatedImageUrl, true); // Update message terakhir
+          updateLastAssistantMessage(generatedImageUrl); // Update message terakhir
           setImageUrl(generatedImageUrl); // Set imageUrl
         } else {
           updateLastAssistantMessage("Sorry, I couldn't generate the image.");
@@ -362,6 +408,60 @@ const ChatInterface: React.FC = () => {
       </div>
     </div>
   );
+};
+
+// Tambahin fungsi ini di dalam komponen ChatInterface
+const formatMessage = (rawContent: string) => {
+  if (!rawContent) return { content: "" };
+
+  let formattedContent = rawContent;
+
+  // Handle basic text formatting
+  formattedContent = formattedContent
+    // Handle paragraphs
+    .split("\n\n")
+    .map((para) => `<p>${para}</p>`)
+    .join("");
+
+  // Handle numbered lists
+  formattedContent = formattedContent.replace(
+    /(?:^|\n)(\d+)\.\s+([^\n]+)/g,
+    (_, num, text) => `<li>${text.trim()}</li>`
+  );
+
+  // Wrap lists in <ol> if they exist
+  if (formattedContent.includes("<li>")) {
+    formattedContent = `<ol>${formattedContent}</ol>`;
+  }
+
+  // Handle inline code
+  formattedContent = formattedContent.replace(
+    /`([^`]+)`/g,
+    '<code class="inline-code">$1</code>'
+  );
+
+  // Handle code blocks
+  formattedContent = formattedContent.replace(
+    /```([\s\S]*?)```/g,
+    (_, code) => `
+      <pre class="code-block">
+        <code>${code.trim()}</code>
+      </pre>
+    `
+  );
+
+  // Handle bold text
+  formattedContent = formattedContent.replace(
+    /\*\*(.*?)\*\*/g,
+    "<strong>$1</strong>"
+  );
+
+  // Handle italic text
+  formattedContent = formattedContent.replace(/\*(.*?)\*/g, "<em>$1</em>");
+
+  return {
+    content: formattedContent,
+  };
 };
 
 export default ChatInterface;

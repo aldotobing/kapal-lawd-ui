@@ -165,9 +165,13 @@ select {
 }
 
 .message-content {
-  line-height: 1.5;
   white-space: pre-wrap;
-  word-break: break-word;
+  word-wrap: break-word;
+}
+
+.message-content p {
+  margin: 0.5em 0;
+  line-height: 1.5;
 }
 
 .message-content h1,
@@ -184,7 +188,31 @@ select {
 }
 
 .message-content li {
-  margin: 0.25rem 0;
+  margin: 0.5em 0;
+  line-height: 1.5;
+}
+
+.message-content ol {
+  margin: 1em 0;
+  padding-left: 2em;
+}
+
+.message-content .inline-code {
+  background-color: rgba(0, 0, 0, 0.1);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 0.9em;
+}
+
+.message-content .code-block {
+  background-color: rgba(0, 0, 0, 0.1);
+  padding: 1em;
+  border-radius: 4px;
+  margin: 1em 0;
+  overflow-x: auto;
+  font-family: monospace;
+  white-space: pre;
 }
 
 .message-content blockquote {
@@ -203,4 +231,12 @@ select {
 .message-content a:hover {
   text-decoration: underline;
   color: #3182ce;
+}
+
+.message-content strong {
+  font-weight: 600;
+}
+
+.message-content em {
+  font-style: italic;
 }

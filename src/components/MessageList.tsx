@@ -1,5 +1,7 @@
 import React from "react";
 import { format } from "date-fns";
+import { marked } from "marked"; // Pastikan marked diimport
+import DOMPurify from "dompurify";
 
 interface Message {
   id: string;
@@ -19,28 +21,33 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
 
     return (
       <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4`}>
-        <div className={`max-w-[70%] ${isUser ? "order-2" : "order-1"}`}>
+        <div className={`max-w-[100%] ${isUser ? "order-2" : "order-1"}`}>
           <div className={`flex flex-col`}>
             <div
               className={`px-4 py-2 rounded-lg text-base ${
                 isUser
                   ? "bg-blue-500 text-white rounded-br-none"
-                  : "dark:text-white rounded-bl-none ml-2" // Tambahkan margin kiri jika bukan user
+                  : "dark:text-white rounded-bl-none ml-2"
               }`}
-              style={{ fontSize: "20px" }}
+              style={{ fontSize: "18px" }}
             >
-              {/* Tampilkan konten atau spinner saat loading */}
-              {message.content ||
-                (isLoading ? (
-                  <div className="spinner"></div>
-                ) : (
-                  "Error: Empty message"
-                ))}
+              {/* Render markdown yang sudah disanitasi */}
+              {message.content ? (
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(marked(message.content.trim())), // Sanitasi konten
+                  }}
+                />
+              ) : isLoading ? (
+                <div className="spinner"></div>
+              ) : (
+                "Error: Empty message"
+              )}
             </div>
             <div
               className={`text-xs text-gray-500 mt-1 ${
                 isUser ? "text-right" : "text-left"
-              } ml-6`} // Tambahkan margin kiri pada timestamp
+              } ml-6`}
             >
               {format(message.timestamp, "HH:mm")}
             </div>
