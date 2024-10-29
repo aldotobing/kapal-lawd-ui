@@ -12,23 +12,23 @@ interface Message {
 
 interface MessageListProps {
   messages: Message[];
-  isLoading: boolean | string; // Status loading dari parent component
-  onSendMessage: () => void; // Callback untuk mengirim pesan
+  isLoading: boolean | string;
+  onSendMessage: () => void;
 }
 
 const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
-  const [showThinking, setShowThinking] = useState(false); // State untuk nampilkan "Thinking"
-  const [hasSentMessage, setHasSentMessage] = useState(false); // Track pengiriman pesan
+  const [showThinking, setShowThinking] = useState(false);
+  const [hasSentMessage, setHasSentMessage] = useState(false);
 
-  // Ketika ada pesan baru, set state hasSentMessage jadi true
+  // Detect new messages
   useEffect(() => {
     if (messages.length > 0) {
       setHasSentMessage(true);
     }
   }, [messages]);
 
+  // Control when to show "Thinking..."
   useEffect(() => {
-    // Hanya munculkan "Thinking..." saat loading setelah pesan dikirim
     if (isLoading && hasSentMessage) {
       setShowThinking(true);
     } else {
@@ -42,7 +42,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
     return (
       <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4`}>
         <div className={`max-w-[100%] ${isUser ? "order-2" : "order-1"}`}>
-          <div className={`flex flex-col`}>
+          <div className="flex flex-col">
             <div
               className={`px-4 py-2 rounded-lg text-base ${
                 isUser
@@ -79,11 +79,10 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
       {messages.map((message) => (
         <MessageBubble key={message.id} message={message} />
       ))}
-      {isLoading && (
+      {showThinking && (
         <div className="flex justify-start">
-          <div className="bg-[#2a2a2a] rounded-lg px-4 py-2">
-            <span className="text-white blink">Thinking...</span>{" "}
-            {/* Render pesan loading dengan blinking */}
+          <div className="px-2 py-1">
+            <span className="blink text-left text-white">Thinking...</span>
           </div>
         </div>
       )}
