@@ -91,7 +91,7 @@ const ChatInterface: React.FC = () => {
   const [currentLanguage, setCurrentLanguage] = useState<Language>(
     LANGUAGES[0]
   );
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  //const [imageUrl, setImageUrl] = useState<string | null>(null);
   const userId = useRef(localStorage.getItem("user-id") || uuidv4());
 
   const chatEndRef = useRef<HTMLDivElement>(null);
