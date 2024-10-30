@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { format } from "date-fns";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
@@ -8,6 +8,8 @@ interface Message {
   content: string;
   type: "user" | "assistant";
   timestamp: Date;
+  isImage?: boolean;
+  imageUrl?: string;
 }
 
 interface MessageListProps {
@@ -17,10 +19,59 @@ interface MessageListProps {
 
 const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
   const [showThinking, setShowThinking] = useState(false);
+  const blobUrlsRef = useRef<Set<string>>(new Set());
+
+  // Cleanup blob URLs when component unmounts
+  useEffect(() => {
+    return () => {
+      blobUrlsRef.current.forEach((url) => {
+        try {
+          URL.revokeObjectURL(url);
+        } catch (error) {
+          console.error("Error revoking blob URL:", error);
+        }
+      });
+    };
+  }, []);
 
   useEffect(() => {
     setShowThinking(isLoading && messages.some((msg) => msg.type === "user"));
   }, [isLoading, messages]);
+
+  const MessageContent = ({ message }: { message: Message }) => {
+    const imgRef = useRef<HTMLImageElement>(null);
+
+    useEffect(() => {
+      if (message.isImage && message.imageUrl) {
+        blobUrlsRef.current.add(message.imageUrl);
+      }
+    }, [message.imageUrl]);
+
+    if (message.isImage && message.imageUrl) {
+      return (
+        <img
+          ref={imgRef}
+          src={message.imageUrl}
+          alt="Generated"
+          className="max-w-full h-auto rounded-lg"
+          onError={(e) => {
+            console.error("Image load error:", e);
+            if (message.imageUrl) {
+              blobUrlsRef.current.delete(message.imageUrl);
+            }
+          }}
+        />
+      );
+    }
+
+    return (
+      <div
+        dangerouslySetInnerHTML={{
+          __html: DOMPurify.sanitize(marked(message.content.trim())),
+        }}
+      />
+    );
+  };
 
   const MessageBubble = ({ message }: { message: Message }) => {
     const isUser = message.type === "user";
@@ -39,11 +90,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
                   : "dark:text-white rounded-bl-none"
               }`}
             >
-              <div
-                dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(marked(message.content.trim())),
-                }}
-              />
+              <MessageContent message={message} />
             </div>
             <div
               className={`text-xs mt-1 ${isUser ? "text-right" : "text-left"}`}

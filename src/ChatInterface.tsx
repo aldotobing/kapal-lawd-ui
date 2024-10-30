@@ -13,6 +13,7 @@ interface Message {
   type: MessageType;
   timestamp: Date;
   isImage?: boolean;
+  imageUrl?: string;
 }
 
 interface Language {
@@ -34,12 +35,15 @@ const isImageRequest = (input: string): boolean => {
   const keywords = [
     "make an image",
     "make a picture of",
+    "make me a picture of",
+    "make me an image of",
     "a picture of",
     "create an image",
     "generate an image",
     "gambarkan",
     "gambar",
     "buatkan saya gambar",
+    "buatkan gambar",
     "tolong buatkan gambar",
     "saya butuh gambar",
     "coba gambarkan",
@@ -69,11 +73,9 @@ const sendImageRequest = async (prompt: string) => {
       throw new Error("Image generation failed");
     }
 
-    // Asumsikan response berupa blob (gambar)
-    const blob = await response.blob(); // Ambil response sebagai blob
-    const imageUrl = URL.createObjectURL(blob); // Buat URL untuk gambar
-
-    return imageUrl; // Kembalikan URL gambar
+    const blob = await response.blob();
+    const imageUrl = URL.createObjectURL(blob);
+    return imageUrl;
   } catch (error) {
     console.error("Error generating image:", error);
     return null;
@@ -131,22 +133,28 @@ const ChatInterface: React.FC = () => {
   const createMessage = (
     content: string,
     type: MessageType,
-    isImage: boolean = false
+    isImage: boolean = false,
+    imageUrl?: string
   ): Message => ({
     id: uuidv4(),
     content,
     type,
     timestamp: new Date(),
     isImage,
+    imageUrl,
   });
 
   // Message Handlers
   const addMessage = (
     content: string,
     type: MessageType,
-    isImage: boolean = false
+    isImage: boolean = false,
+    imageUrl?: string
   ) => {
-    setMessages((prev) => [...prev, createMessage(content, type, isImage)]);
+    setMessages((prev) => [
+      ...prev,
+      createMessage(content, type, isImage, imageUrl),
+    ]);
   };
 
   const updateLastAssistantMessage = (rawContent: string) => {
@@ -322,18 +330,37 @@ const ChatInterface: React.FC = () => {
     setInputText("");
     setIsLoading(true);
     addMessage(trimmedInput, "user");
-    addMessage("", "assistant");
 
     try {
       if (isImageRequest(trimmedInput)) {
+        addMessage("Generating image...", "assistant");
         const generatedImageUrl = await sendImageRequest(trimmedInput);
+
         if (generatedImageUrl) {
-          updateLastAssistantMessage(generatedImageUrl);
-          setImageUrl(generatedImageUrl);
+          const imageMessage: Message = {
+            id: uuidv4(),
+            content: "",
+            type: "assistant",
+            timestamp: new Date(),
+            isImage: true,
+            imageUrl: generatedImageUrl,
+          };
+
+          setMessages((prev) => {
+            const newMessages = prev.filter(
+              (msg) =>
+                !(
+                  msg.type === "assistant" &&
+                  msg.content === "Generating image..."
+                )
+            );
+            return [...newMessages, imageMessage];
+          });
         } else {
           updateLastAssistantMessage("Sorry, I couldn't generate the image.");
         }
       } else {
+        addMessage("", "assistant");
         const stream = await sendMessageToAPI(trimmedInput);
         if (stream) {
           await processStream(stream, (response) =>
@@ -378,14 +405,6 @@ const ChatInterface: React.FC = () => {
 
       <div className="flex-grow overflow-y-auto ml-1 chat-container bg-[#2a2a2a]">
         <MessageList messages={messages} isLoading={isLoading} />
-        {imageUrl && (
-          <img
-            src={imageUrl}
-            alt="Generated"
-            className="mt-4 w-150 h-150 object-cover"
-          />
-        )}
-
         <div ref={chatEndRef} />
       </div>
 
