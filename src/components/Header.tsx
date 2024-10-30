@@ -18,7 +18,7 @@ const Header: React.FC<HeaderProps> = ({
 }) => (
   <div className="p-2 flex justify-between items-center">
     <h1
-      className="text-xl font-bold flex items-center ml-5"
+      className="text-xl font-bold flex items-center ml-5 mb-1"
       style={{
         fontFamily:
           '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
@@ -32,7 +32,7 @@ const Header: React.FC<HeaderProps> = ({
     </h1>
 
     <div
-      className="flex gap-1 p-2 rounded-xl mr-10 mt-3"
+      className="flex gap-1 p-2 rounded-xl mr-5"
       style={{ backgroundColor: "#2a2a2a" }}
     >
       <button onClick={toggleDarkMode} className="p-2 rounded-full">
