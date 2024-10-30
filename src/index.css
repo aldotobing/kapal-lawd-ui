@@ -4,44 +4,20 @@
 @tailwind components;
 @tailwind utilities;
 
-@keyframes wave {
+@keyframes custom-pulse {
   0%,
   100% {
-    transform: translateY(0);
+    transform: scale(1);
+    opacity: 0.7;
   }
   50% {
-    transform: translateY(-5px);
+    transform: scale(1.1);
+    opacity: 1;
   }
 }
 
-.wave-span {
-  display: inline-block;
-  animation: wave 1s infinite;
-}
-
-.wave-span:nth-child(1) {
-  animation-delay: 0s;
-}
-.wave-span:nth-child(2) {
-  animation-delay: 0.1s;
-}
-.wave-span:nth-child(3) {
-  animation-delay: 0.2s;
-}
-.wave-span:nth-child(4) {
-  animation-delay: 0.3s;
-}
-.wave-span:nth-child(5) {
-  animation-delay: 0.4s;
-}
-.wave-span:nth-child(6) {
-  animation-delay: 0.5s;
-}
-.wave-span:nth-child(7) {
-  animation-delay: 0.6s;
-}
-.wave-span:nth-child(8) {
-  animation-delay: 0.7s;
+.thinking-indicator {
+  animation: custom-pulse 1s infinite; /* Durasi dan repetisi */
 }
 
 @keyframes blink {
@@ -99,15 +75,11 @@
 }
 
 .chat-container {
-  overflow-y: scroll; /* Biar scroll muncul hanya kalau perlu */
-  scrollbar-width: thin; /* Untuk Firefox: buat scroll lebih kecil */
-  scrollbar-color: #2a2a2a #2a2a2a; /* Custom warna scrollbar */
-  padding: 8px;
-}
-
-.chat-container {
-  border: none;
-  outline: none;
+  display: flex;
+  flex-direction: column; /* Membuat konten dalam kolom */
+  justify-content: flex-start; /* Mengatur posisi konten ke atas */
+  padding: 16px; /* Atur padding sesuai kebutuhan */
+  margin: 0; /* Pastikan margin tidak menyebabkan pergeseran */
 }
 
 .chat-container::-webkit-scrollbar-thumb {
@@ -189,12 +161,12 @@ select {
 }
 
 .input-field {
-  @apply flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#4a4a4a] dark:text-white;
+  @apply flex-1 p-3 border border-gray-300 dark:border-gray-600 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#4a4a4a] dark:text-white;
   transition: border-color 0.3s ease;
 }
 
 .send-button {
-  @apply p-2 rounded-full bg-blue-500 text-white;
+  @apply p-2 rounded-full bg-blue-500  text-white;
   transition: background-color 0.3s ease;
 }
 
@@ -202,9 +174,13 @@ select {
   @apply bg-blue-600;
 }
 
+.dark .send-button {
+  @apply bg-blue-900;
+}
+
 .voice-button,
 .upload-button {
-  @apply p-2 rounded-full bg-gray-200 transition;
+  @apply p-2 rounded-full bg-blue-700 transition;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -219,7 +195,7 @@ select {
 
 .dark .voice-button,
 .dark .upload-button {
-  @apply bg-gray-700;
+  @apply bg-gray-600;
 }
 
 .typing-dots {

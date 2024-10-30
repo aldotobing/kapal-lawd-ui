@@ -26,13 +26,13 @@ const Header: React.FC<HeaderProps> = ({
         color: "#c4c4c4",
       }}
     >
-      <i className="fas fa-terminal mr-2" style={{ color: "#c4c4c4" }}></i>{" "}
+      <i className="fas fa-terminal mr-3" style={{ color: "#c4c4c4" }}></i>{" "}
       {/* Icon terminal */}
       Kapal Lawd GPT
     </h1>
 
     <div
-      className="flex gap-4 p-2 rounded-lg"
+      className="flex gap-1 p-2 rounded-xl mr-10 mt-3"
       style={{ backgroundColor: "#2a2a2a" }}
     >
       <button onClick={toggleDarkMode} className="p-2 rounded-full">

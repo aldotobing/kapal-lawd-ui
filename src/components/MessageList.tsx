@@ -29,13 +29,11 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
       : "Invalid Date";
 
     return (
-      <div
-        className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4 ml-5`}
-      >
-        <div className={`max-w-[95%] ${isUser ? "order-2" : "order-1"}`}>
+      <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4`}>
+        <div className={`max-w-[90%] ${isUser ? "order-2" : "order-1"} -ml-2`}>
           <div className="flex flex-col">
             <div
-              className={`px-4 py-2 rounded-lg text-base ${
+              className={`px-2 py-2 rounded-lg text-base ${
                 isUser
                   ? "bg-blue-500 text-white rounded-br-none"
                   : "dark:text-white rounded-bl-none"
@@ -50,7 +48,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
             <div
               className={`text-xs mt-1 ${isUser ? "text-right" : "text-left"}`}
             >
-              <p className="text-white text-[10px] ml-4">{formattedTime}</p>
+              <p className="text-white text-[10px] ml-2">{formattedTime}</p>
             </div>
           </div>
         </div>
@@ -64,7 +62,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
         <MessageBubble key={msg.id} message={msg} />
       ))}
       {showThinking && (
-        <div className="thinking-indicator text-white text-sm p-2 mt-4 ml-6 animate-pulse">
+        <div className="thinking-indicator text-center text-white text-sm p-1">
           Thinking...
         </div>
       )}

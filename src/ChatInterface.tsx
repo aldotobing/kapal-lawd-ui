@@ -376,7 +376,7 @@ const ChatInterface: React.FC = () => {
         setCurrentLanguage={setCurrentLanguage}
       />
 
-      <div className="flex-1 overflow-y-auto chat-container bg-[#2a2a2a]">
+      <div className="flex-grow overflow-y-auto ml-1 chat-container bg-[#2a2a2a]">
         <MessageList messages={messages} isLoading={isLoading} />
         {imageUrl && (
           <img
