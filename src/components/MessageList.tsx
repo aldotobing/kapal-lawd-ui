@@ -85,10 +85,10 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
         <div className={`max-w-[95%] ${isUser ? "order-2" : "order-1"} -ml-1`}>
           <div className="flex flex-col">
             <div
-              className={`px-2.5 py-2.5 rounded-lg text-base transition-all duration-200 ${
+              className={`px-2 py-1 text-base transition-all duration-200 ${
                 isUser
-                  ? "bg-blue-500 text-white rounded-br-none"
-                  : "bg-[#2a2a2a] dark:text-white rounded-bl-md"
+                  ? "bg-blue-500 text-white rounded-full rounded-br-none"
+                  : "bg-[#2a2a2a] dark:text-white rounded-full rounded-bl-md"
               }`}
             >
               <MessageContent message={message} />
