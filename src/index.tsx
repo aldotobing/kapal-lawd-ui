@@ -1,8 +1,9 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import ChatInterface from "./ChatInterface"; // Import the ChatInterface component
-import "./index.css"; // Optional: For any global CSS styles
-import "./assets/code.css"; // Optional: For any global CSS stylesptional: For any global CSS styles
+import ChatInterface from "./ChatInterface";
+import "./index.css";
+import "./assets/code.css";
+import * as serviceWorker from "./ServiceWorker.js";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -13,3 +14,12 @@ root.render(
     <ChatInterface />
   </React.StrictMode>
 );
+
+serviceWorker.register({
+  onSuccess: () => {
+    console.log("Service Worker registered successfully");
+  },
+  onUpdate: () => {
+    console.log("New content is available; please refresh.");
+  },
+});
