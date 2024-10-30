@@ -1,0 +1,37 @@
+.code-box {
+  border: 1px solid #ddd; /* Light border */
+  background: #f4f4f4; /* Light background */
+  border-radius: 5px;
+  margin: 10px 0;
+  overflow: hidden; /* Ensures border-radius affects the content inside */
+}
+
+.dark .code-box {
+  background: #333; /* Dark background */
+  border: 1px solid #555; /* Dark border */
+}
+
+.code-block {
+  white-space: pre-wrap; /* Preserves formatting */
+  color: #d6e2ef; /* Light text color */
+  padding: 10px;
+  margin: 0; /* No margin as it's already handled by .code-box */
+  background: #2a2a2a; /* Match your desired dark background */
+  border-radius: 0 0 5px 5px; /* Round corners only at bottom for bottom block */
+}
+
+.dark .code-block {
+  background: #4a4a4a; /* Darker background for dark mode */
+  color: #ccc; /* Light text color for dark mode */
+}
+
+.code-box .code-block::before {
+  content: attr(data-language); /* Display language at the top */
+  display: block;
+  background: #444;
+  color: #fff;
+  padding: 2px 5px;
+  font-size: 0.8em;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+}

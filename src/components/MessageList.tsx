@@ -12,61 +12,45 @@ interface Message {
 
 interface MessageListProps {
   messages: Message[];
-  isLoading: boolean | string;
-  onSendMessage: () => void;
+  isLoading: boolean;
 }
 
 const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
   const [showThinking, setShowThinking] = useState(false);
-  const [hasSentMessage, setHasSentMessage] = useState(false);
 
-  // Detect new messages
   useEffect(() => {
-    if (messages.length > 0) {
-      setHasSentMessage(true);
-    }
-  }, [messages]);
-
-  // Control when to show "Thinking..."
-  useEffect(() => {
-    if (isLoading && hasSentMessage) {
-      setShowThinking(true);
-    } else {
-      setShowThinking(false);
-    }
-  }, [isLoading, hasSentMessage]);
+    setShowThinking(isLoading && messages.some((msg) => msg.type === "user"));
+  }, [isLoading, messages]);
 
   const MessageBubble = ({ message }: { message: Message }) => {
     const isUser = message.type === "user";
+    const formattedTime = message.timestamp
+      ? format(message.timestamp, "HH:mm")
+      : "Invalid Date";
 
     return (
-      <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4`}>
-        <div className={`max-w-[100%] ${isUser ? "order-2" : "order-1"}`}>
+      <div
+        className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4 ml-5`}
+      >
+        <div className={`max-w-[95%] ${isUser ? "order-2" : "order-1"}`}>
           <div className="flex flex-col">
             <div
               className={`px-4 py-2 rounded-lg text-base ${
                 isUser
                   ? "bg-blue-500 text-white rounded-br-none"
-                  : "dark:text-white rounded-bl-none ml-2"
+                  : "dark:text-white rounded-bl-none"
               }`}
-              style={{ fontSize: "18px" }}
             >
-              {message.content ? (
-                <div
-                  dangerouslySetInnerHTML={{
-                    __html: DOMPurify.sanitize(marked(message.content.trim())),
-                  }}
-                />
-              ) : (
-                "Error: Empty message"
-              )}
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(marked(message.content.trim())),
+                }}
+              />
             </div>
             <div
-              className={`text-xs text-gray-500 mt-1 ${
-                isUser ? "text-right" : "text-left"
-              } ml-6`}
+              className={`text-xs mt-1 ${isUser ? "text-right" : "text-left"}`}
             >
-              {format(message.timestamp, "HH:mm")}
+              <p className="text-white text-[10px] ml-4">{formattedTime}</p>
             </div>
           </div>
         </div>
@@ -75,15 +59,13 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
   };
 
   return (
-    <div className="p-4 space-y-4">
-      {messages.map((message) => (
-        <MessageBubble key={message.id} message={message} />
+    <div className="p-4">
+      {messages.map((msg) => (
+        <MessageBubble key={msg.id} message={msg} />
       ))}
       {showThinking && (
-        <div className="flex justify-start">
-          <div className="px-2 py-1">
-            <span className="blink text-left text-white">Thinking...</span>
-          </div>
+        <div className="thinking-indicator text-white text-sm p-2 mt-4 ml-6 animate-pulse">
+          Thinking...
         </div>
       )}
     </div>

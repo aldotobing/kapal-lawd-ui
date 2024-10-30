@@ -16,9 +16,9 @@ const Header: React.FC<HeaderProps> = ({
   languages,
   setCurrentLanguage,
 }) => (
-  <div className="p-4 flex justify-between items-center">
+  <div className="p-2 flex justify-between items-center">
     <h1
-      className="text-xl font-bold flex items-center"
+      className="text-xl font-bold flex items-center ml-5"
       style={{
         fontFamily:
           '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
@@ -37,13 +37,13 @@ const Header: React.FC<HeaderProps> = ({
     >
       <button onClick={toggleDarkMode} className="p-2 rounded-full">
         {isDarkMode ? (
-          <Sun size={20} color="#ffffff" />
+          <Sun size={15} color="#ffffff" />
         ) : (
-          <Moon size={20} color="#ffffff" />
+          <Moon size={15} color="#ffffff" />
         )}
       </button>
       <button className="p-2 rounded-full">
-        <Settings size={20} color="#ffffff" />
+        <Settings size={15} color="#ffffff" />
       </button>
     </div>
   </div>

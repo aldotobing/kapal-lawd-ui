@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useLayoutEffect, useEffect } from "react";
 import Header from "./components/Header";
 import MessageList from "./components/MessageList";
 import { Upload, ArrowUp } from "lucide-react";
@@ -90,21 +90,26 @@ const ChatInterface: React.FC = () => {
     LANGUAGES[0]
   );
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const userId = useRef(localStorage.getItem("user-id") || uuidv4());
+
+  const chatEndRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   //   const [isListening, setIsListening] = useState(false);
 
+  // Save user ID to localStorage (only once).
   useEffect(() => {
-    // Cek apakah user-id sudah ada di localStorage
-    let userId = localStorage.getItem("user-id");
-    if (!userId) {
-      userId = uuidv4(); // Generate UUID
-      localStorage.setItem("user-id", userId); // Simpan ke localStorage
-    }
+    localStorage.setItem("user-id", userId.current);
   }, []);
 
   // Refs
-  const chatEndRef = useRef<HTMLDivElement>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  useLayoutEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  useEffect(() => {
+    return () => abortControllerRef.current?.abort(); // Clean up on unmount.
+  }, []);
 
   // Effects
   useEffect(() => {
@@ -145,16 +150,15 @@ const ChatInterface: React.FC = () => {
   };
 
   const updateLastAssistantMessage = (rawContent: string) => {
-    const { content } = formatMessage(rawContent);
+    const formatted = formatMessage(rawContent);
     setMessages((prev) => {
       const newMessages = [...prev];
-      const lastAssistantMessageIndex = newMessages
-        .map((m, i) => ({ ...m, index: i }))
-        .filter((m) => m.type === "assistant")
-        .pop();
-
-      if (lastAssistantMessageIndex) {
-        newMessages[lastAssistantMessageIndex.index].content = content;
+      const lastAssistantIndex = newMessages.length - 1;
+      if (
+        lastAssistantIndex >= 0 &&
+        newMessages[lastAssistantIndex].type === "assistant"
+      ) {
+        newMessages[lastAssistantIndex].content = formatted.content;
       }
       return newMessages;
     });
@@ -168,39 +172,24 @@ const ChatInterface: React.FC = () => {
     abortControllerRef.current?.abort();
     abortControllerRef.current = new AbortController();
 
-    const userId = localStorage.getItem("user-id") || "anonymous";
     const sanitizedInput = sanitizeInput(userInput);
-    const messages = [{ role: "user", content: sanitizedInput }];
+    const messagesPayload = [{ role: "user", content: sanitizedInput }];
 
     try {
       const response = await fetch(API_URL, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ user_id: userId, messages }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: userId.current,
+          messages: messagesPayload,
+        }),
         signal: abortControllerRef.current.signal,
       });
 
-      if (!response.ok) {
-        let errorBody;
-        try {
-          errorBody = await response.text();
-        } catch (textError) {
-          console.error("Failed to read response body:", textError);
-          errorBody = "Could not retrieve error details";
-        }
-        console.error("Error Response Status:", response.status);
-        console.error("Error Response Body:", errorBody);
-        throw new Error("API request failed");
-      }
+      if (!response.ok) throw new Error("API request failed");
 
-      return response.body; // Kembaliin body dari response untuk diproses
+      return response.body;
     } catch (error) {
-      if (error instanceof Error && error.name === "AbortError") {
-        console.log("Request was aborted");
-        return null;
-      }
       console.error("Error sending message:", error);
       throw error;
     }
@@ -214,10 +203,14 @@ const ChatInterface: React.FC = () => {
     const reader = stream.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
-    let accumulatedResponse = "";
+    let accumulatedHTML = "";
+    let inCodeBlock = false;
+    let codeBlockLang = "";
+
+    const updateFrequency = 10; // milliseconds
+    let lastUpdate = Date.now();
 
     try {
-      let jsonStr;
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
@@ -228,102 +221,131 @@ const ChatInterface: React.FC = () => {
         buffer = lines.pop() || "";
 
         for (const line of lines) {
-          if (line.trim() === "") continue;
+          if (line.trim() === "" || !line.startsWith("data: ")) continue;
 
-          if (line.startsWith("data: ")) {
-            try {
-              jsonStr = line.slice(6).trim(); // Remove 'data: ' prefix
+          let jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") break;
 
-              // Check for outer [DONE] signal
+          try {
+            const outerData = JSON.parse(jsonStr);
+            if (outerData.response && outerData.response.startsWith("data: ")) {
+              jsonStr = outerData.response.slice(6).trim();
               if (jsonStr === "[DONE]") break;
 
-              const outerData = JSON.parse(jsonStr);
+              const innerData = JSON.parse(jsonStr);
+              if (innerData.response) {
+                const formattedChunk = formatChunk(
+                  innerData.response,
+                  inCodeBlock,
+                  codeBlockLang
+                );
+                accumulatedHTML += formattedChunk.content;
 
-              // Check for inner [DONE] signal
-              if (outerData.response === "data: [DONE]\n\n") {
-                break;
-              }
+                // Update code block state
+                inCodeBlock = formattedChunk.inCodeBlock;
+                codeBlockLang = formattedChunk.codeBlockLang || "";
 
-              // Parse the nested data string
-              if (
-                outerData.response &&
-                outerData.response.startsWith("data: ")
-              ) {
-                const innerJsonStr = outerData.response.slice(6).trim();
-
-                // Skip if it's a [DONE] signal
-                if (innerJsonStr === "[DONE]") {
-                  break;
+                // Only update on a specific interval to smooth out rendering
+                if (Date.now() - lastUpdate > updateFrequency) {
+                  onResponse(accumulatedHTML);
+                  lastUpdate = Date.now();
                 }
-
-                try {
-                  const innerData = JSON.parse(innerJsonStr);
-
-                  if (innerData.response) {
-                    accumulatedResponse += innerData.response;
-                    onResponse(accumulatedResponse);
-                  }
-                } catch (innerError) {
-                  // Only log if it's not a [DONE] signal
-                  if (innerJsonStr !== "[DONE]") {
-                    console.warn(
-                      "Failed to parse inner JSON:",
-                      innerJsonStr,
-                      innerError
-                    );
-                  }
-                }
-              }
-            } catch (error) {
-              // Only log if it's not a [DONE] signal
-              if (jsonStr !== "[DONE]") {
-                console.warn("Failed to parse outer JSON:", line, error);
               }
             }
+          } catch (error) {
+            console.warn("Failed to parse JSON:", line, error);
           }
         }
+      }
+      // Final flush of any remaining content
+      if (accumulatedHTML) {
+        onResponse(accumulatedHTML);
       }
     } finally {
       reader.releaseLock();
     }
   };
 
+  // Enhanced formatChunk function to handle code blocks
+  const formatChunk = (
+    chunk: string,
+    inCodeBlock: boolean,
+    codeBlockLang: string
+  ) => {
+    let result = {
+      content: "",
+      inCodeBlock: inCodeBlock,
+      codeBlockLang: codeBlockLang,
+    };
+
+    if (chunk.trim().startsWith("```")) {
+      if (!inCodeBlock) {
+        // Start of new code block
+        const langMatch = chunk.match(/^```(\w*)/);
+        result.inCodeBlock = true;
+        result.codeBlockLang = langMatch ? langMatch[1] : "";
+        result.content = `<div class="code-box"><pre class="code-block" data-language="${result.codeBlockLang}"><code>`;
+        return result;
+      } else {
+        // End of existing code block
+        result.inCodeBlock = false;
+        result.codeBlockLang = "";
+        result.content = `</code></pre></div>`;
+        return result;
+      }
+    }
+
+    if (inCodeBlock) {
+      // Inside a code block, no special formatting needed except escaping HTML
+      result.content = chunk
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    } else {
+      // Outside of code blocks, apply all other formatting
+      result.content = chunk
+        .replace(/\n/g, "<br/>")
+        .replace(/`([^`\r\n]+)`/g, '<code class="inline-code">$1</code>')
+        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+        .replace(/_(.*?)_/g, "<em>$1</em>")
+        .replace(/~~(.*?)~~/g, "<del>$1</del>");
+    }
+
+    return result;
+  };
+
   // Event Handlers
   const handleSendMessage = async () => {
     const trimmedInput = inputText.trim();
-    console.log("Trimmed Input:", trimmedInput);
-
     if (!trimmedInput || isLoading) return;
 
-    setInputText(""); // Reset input text
-    setIsLoading(true); // Set loading true
-    addMessage(trimmedInput, "user"); // Tambah pesan user
-    addMessage("", "assistant"); // Tambah pesan kosong untuk assistant
+    setInputText("");
+    setIsLoading(true);
+    addMessage(trimmedInput, "user");
+    addMessage("", "assistant");
 
     try {
       if (isImageRequest(trimmedInput)) {
         const generatedImageUrl = await sendImageRequest(trimmedInput);
         if (generatedImageUrl) {
-          updateLastAssistantMessage(generatedImageUrl); // Update pesan terakhir dengan URL gambar
-          setImageUrl(generatedImageUrl); // Set imageUrl
+          updateLastAssistantMessage(generatedImageUrl);
+          setImageUrl(generatedImageUrl);
         } else {
           updateLastAssistantMessage("Sorry, I couldn't generate the image.");
         }
       } else {
         const stream = await sendMessageToAPI(trimmedInput);
         if (stream) {
-          await processStream(stream, (response) => {
-            updateLastAssistantMessage(response); // Update pesan dari assistant
-          });
+          await processStream(stream, (response) =>
+            updateLastAssistantMessage(response)
+          );
         }
       }
     } catch (error) {
-      console.error("Error sending message:", error);
-      updateLastAssistantMessage(
-        "Sorry, an error occurred while sending the message. Please try again."
-      );
+      console.error(error);
+      updateLastAssistantMessage("An error occurred. Please try again.");
     } finally {
-      setIsLoading(false); // Set loading false setelah selesai
+      setIsLoading(false);
     }
   };
 
@@ -354,17 +376,13 @@ const ChatInterface: React.FC = () => {
         setCurrentLanguage={setCurrentLanguage}
       />
 
-      <div className="flex-1 overflow-y-auto bg-[#2a2a2a] dark:bg-[#2a2a2a] chat-container">
-        <MessageList
-          messages={messages}
-          isLoading={isLoading}
-          onSendMessage={handleSendMessage}
-        />
+      <div className="flex-1 overflow-y-auto chat-container bg-[#2a2a2a]">
+        <MessageList messages={messages} isLoading={isLoading} />
         {imageUrl && (
           <img
             src={imageUrl}
             alt="Generated"
-            className="mt-4 ml-10 w-150 h-150 object-cover"
+            className="mt-4 w-150 h-150 object-cover"
           />
         )}
 
@@ -396,17 +414,17 @@ const ChatInterface: React.FC = () => {
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           onKeyPress={handleKeyPress}
-          placeholder={`Apa yang bisa saya bantu?`}
-          className="input-field flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#4a4a4a] dark:text-white"
+          placeholder="Apa yang bisa saya bantu?"
+          className="input-field flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-full
+             focus:outline-none focus:ring-2 focus:ring-blue-500 
+             dark:bg-[#4a4a4a] dark:text-white"
           disabled={isLoading}
         />
 
         <button
           onClick={handleSendMessage}
           disabled={!inputText.trim() || isLoading}
-          className={`send-button rounded-full p-2 bg-blue-500 text-white transition-colors ${
-            inputText.trim() && !isLoading ? "" : "cursor-not-allowed"
-          }`}
+          className="send-button p-2 bg-blue-500 text-white"
         >
           <ArrowUp size={20} />
         </button>
@@ -421,9 +439,8 @@ const formatMessage = (rawContent: string) => {
 
   let formattedContent = rawContent;
 
-  // Handle basic text formatting
+  // Handle paragraphs
   formattedContent = formattedContent
-    // Handle paragraphs
     .split("\n\n")
     .map((para) => `<p>${para}</p>`)
     .join("");
@@ -439,30 +456,49 @@ const formatMessage = (rawContent: string) => {
     formattedContent = `<ol>${formattedContent}</ol>`;
   }
 
+  // Handle bullet lists
+  formattedContent = formattedContent.replace(
+    /(?:^|\n)- (.+)/g,
+    (_, text) => `<li>${text.trim()}</li>`
+  );
+  if (formattedContent.includes("<li>") && !formattedContent.includes("<ol>")) {
+    formattedContent = `<ul>${formattedContent}</ul>`;
+  }
+
   // Handle inline code
   formattedContent = formattedContent.replace(
-    /`([^`]+)`/g,
+    /`([^`\r\n]+)`/g,
     '<code class="inline-code">$1</code>'
   );
 
-  // Handle code blocks
+  // Handle code blocks with syntax highlighting
   formattedContent = formattedContent.replace(
-    /```([\s\S]*?)```/g,
-    (_, code) => `
-      <pre class="code-block">
+    /```(\w*)\s*\n?([\s\S]*?)\n?```/g,
+    (_, lang, code) => `
+      <pre class="code-block" data-language="${lang || "plaintext"}">
         <code>${code.trim()}</code>
       </pre>
     `
   );
 
   // Handle bold text
-  formattedContent = formattedContent.replace(
-    /\*\*(.*?)\*\*/g,
-    "<strong>$1</strong>"
-  );
+  formattedContent = formattedContent
+    .replace(/__(.*?)__/g, "<strong>$1</strong>")
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
 
   // Handle italic text
-  formattedContent = formattedContent.replace(/\*(.*?)\*/g, "<em>$1</em>");
+  formattedContent = formattedContent
+    .replace(/\*(.*?)\*/g, "<em>$1</em>")
+    .replace(/_(.*?)_/g, "<em>$1</em>");
+
+  // Handle strikethrough
+  formattedContent = formattedContent.replace(/~~(.*?)~~/g, "<del>$1</del>");
+
+  // Handle links
+  formattedContent = formattedContent.replace(
+    /\[(.*?)\]\((.*?)\)/g,
+    '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
+  );
 
   return {
     content: formattedContent,
