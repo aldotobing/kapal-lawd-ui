@@ -23,8 +23,9 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
 
   // Cleanup blob URLs when component unmounts
   useEffect(() => {
+    const currentBlobUrls = blobUrlsRef.current;
     return () => {
-      blobUrlsRef.current.forEach((url) => {
+      currentBlobUrls.forEach((url) => {
         try {
           URL.revokeObjectURL(url);
         } catch (error) {
@@ -45,7 +46,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
       if (message.isImage && message.imageUrl) {
         blobUrlsRef.current.add(message.imageUrl);
       }
-    }, [message.imageUrl]);
+    }, [message.isImage, message.imageUrl]);
 
     if (message.isImage && message.imageUrl) {
       return (
