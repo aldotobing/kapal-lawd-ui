@@ -443,7 +443,10 @@ const ChatInterface: React.FC = () => {
         <button
           onClick={handleSendMessage}
           disabled={!inputText.trim() || isLoading}
-          className="send-button p-2 bg-blue-500 text-white"
+          className={`send-button text-white ${
+            !inputText.trim() || isLoading ? "bg-grey-500" : "bg-blue-500"
+          }`}
+          style={{ marginLeft: "1px" }} // Inline style override
         >
           <ArrowUp size={20} />
         </button>

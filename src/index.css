@@ -17,7 +17,45 @@
 }
 
 .thinking-indicator {
-  animation: custom-pulse 1s infinite; /* Durasi dan repetisi */
+  position: absolute;
+  bottom: 10px; /* Tetap 10px dari bawah */
+  left: 50%;
+  transform: translateX(-50%);
+  font-style: italic;
+  color: grey;
+  animation: typing 2s steps(10) infinite;
+}
+
+@keyframes typing {
+  0% {
+    content: "T";
+  }
+  20% {
+    content: "Th";
+  }
+  40% {
+    content: "Thi";
+  }
+  60% {
+    content: "Thin";
+  }
+  70% {
+    content: "Think";
+  }
+  80% {
+    content: "Thinki";
+  }
+  100% {
+    content: "Thinking...";
+  }
+}
+
+.thinking-indicator::after {
+  display: inline-block;
+  content: "";
+  animation: typing 2s steps(10) infinite;
+  font-style: italic;
+  color: grey;
 }
 
 @keyframes blink {
@@ -166,7 +204,7 @@ select {
 }
 
 .send-button {
-  @apply p-2.5 rounded-full bg-blue-500  text-white;
+  @apply p-2 rounded-full mr-1 bg-blue-500 text-white;
   transition: background-color 0.3s ease;
 }
 
@@ -178,10 +216,16 @@ select {
   @apply bg-blue-900;
 }
 
+.send-button:disabled {
+  background-color: grey;
+  cursor: not-allowed;
+}
+
 .voice-button,
 .upload-button {
-  @apply p-2.5 rounded-full bg-blue-700 transition;
+  @apply p-2 rounded-full bg-blue-700 transition;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-right: -8px;
 }
 
 .voice-button.active {

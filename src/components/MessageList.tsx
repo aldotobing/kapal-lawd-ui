@@ -105,14 +105,12 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
   };
 
   return (
-    <div className="p-4">
+    <div className="p-4 relative">
       {messages.map((msg) => (
         <MessageBubble key={msg.id} message={msg} />
       ))}
       {showThinking && (
-        <div className="thinking-indicator text-center text-white text-sm p-1">
-          Thinking...
-        </div>
+        <div className="thinking-indicator text-center text-white text-sm p-1"></div>
       )}
     </div>
   );
