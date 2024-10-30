@@ -81,22 +81,24 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
       : "Invalid Date";
 
     return (
-      <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4`}>
-        <div className={`max-w-[90%] ${isUser ? "order-2" : "order-1"} -ml-2`}>
+      <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-2`}>
+        <div className={`max-w-[90%] ${isUser ? "order-2" : "order-1"} -ml-1`}>
           <div className="flex flex-col">
             <div
-              className={`px-2 py-2 rounded-lg text-base ${
+              className={`px-2 py-1 rounded-lg text-sm transition-all duration-200 ${
                 isUser
                   ? "bg-blue-500 text-white rounded-br-none"
-                  : "dark:text-white rounded-bl-none"
+                  : "bg-[#2a2a2a] dark:text-white rounded-bl-md"
               }`}
             >
               <MessageContent message={message} />
             </div>
             <div
-              className={`text-xs mt-1 ${isUser ? "text-right" : "text-left"}`}
+              className={`mt-1 text-[8px] tracking-wide text-gray-400 ${
+                isUser ? "text-right" : "text-left"
+              }`}
             >
-              <p className="text-white text-[10px] ml-2">{formattedTime}</p>
+              <p className="ml-2">{formattedTime}</p>
             </div>
           </div>
         </div>

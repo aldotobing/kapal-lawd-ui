@@ -30,20 +30,32 @@
   0% {
     content: "T";
   }
-  20% {
+  10% {
     content: "Th";
   }
-  40% {
+  20% {
     content: "Thi";
   }
-  60% {
+  30% {
     content: "Thin";
   }
-  70% {
+  40% {
     content: "Think";
   }
-  80% {
+  50% {
     content: "Thinki";
+  }
+  60% {
+    content: "Thinkin";
+  }
+  70% {
+    content: "Thinking";
+  }
+  80% {
+    content: "Thinking.";
+  }
+  90% {
+    content: "Thinking..";
   }
   100% {
     content: "Thinking...";
@@ -53,7 +65,7 @@
 .thinking-indicator::after {
   display: inline-block;
   content: "";
-  animation: typing 2s steps(10) infinite;
+  animation: typing 1s steps(10) infinite;
   font-style: italic;
   color: grey;
 }
