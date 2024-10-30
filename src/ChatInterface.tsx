@@ -403,7 +403,7 @@ const ChatInterface: React.FC = () => {
         setCurrentLanguage={setCurrentLanguage}
       />
 
-      <div className="flex-grow overflow-y-auto ml-1 chat-container bg-[#2a2a2a]">
+      <div className="flex-grow overflow-y-auto ml-1 chat-container">
         <MessageList messages={messages} isLoading={isLoading} />
         <div ref={chatEndRef} />
       </div>

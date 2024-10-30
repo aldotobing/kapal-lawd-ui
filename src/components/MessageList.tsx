@@ -88,7 +88,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
               className={`px-2 py-1 text-base transition-all duration-200 ${
                 isUser
                   ? "bg-blue-500 text-white rounded-full rounded-br-none"
-                  : "bg-[#2a2a2a] dark:text-white rounded-full rounded-bl-md"
+                  : " dark:text-white rounded-md rounded-bl-none"
               }`}
             >
               <MessageContent message={message} />
