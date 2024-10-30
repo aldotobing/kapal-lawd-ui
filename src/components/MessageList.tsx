@@ -98,7 +98,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
                 isUser ? "text-right" : "text-left"
               }`}
             >
-              <p className="ml-2">{formattedTime}</p>
+              <p className="ml-2 text-xs">{formattedTime}</p>
             </div>
           </div>
         </div>
