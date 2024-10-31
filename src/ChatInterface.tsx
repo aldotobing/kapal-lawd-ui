@@ -30,6 +30,24 @@ const LANGUAGES: Language[] = [
 const API_URL = "https://kapal-lawd-be.aldo-tobing.workers.dev/";
 const IMAGE_API_URL = "https://image-gen.aldo-tobing.workers.dev/";
 const TRANSLATE_API_URL = "https://ai.aldo-tobing.workers.dev/";
+const WEATHER_API_KEY = process.env.REACT_APP_WEATHER_API_KEY;
+const WEATHER_API_URL = "https://api.openweathermap.org/data/2.5/weather";
+
+interface WeatherData {
+  name: string;
+  main: {
+    temp: number;
+    feels_like: number;
+    humidity: number;
+  };
+  weather: Array<{
+    description: string;
+    icon: string;
+  }>;
+  wind: {
+    speed: number;
+  };
+}
 
 // Function to check if the input is a request for an image
 const isImageRequest = (input: string): boolean => {
@@ -130,6 +148,46 @@ const ChatInterface: React.FC = () => {
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [isWeatherLoading, setIsWeatherLoading] = useState(false);
+
+  const isWeatherRequest = (input: string): boolean => {
+    const weatherKeywords = [
+      "cuaca hari ini",
+      "cuaca di",
+      "weather today",
+      "what's the weather",
+      "weather in",
+      "temperature in",
+      "suhu di",
+      "prakiraan cuaca",
+    ];
+
+    const lowerInput = input.toLowerCase();
+    return weatherKeywords.some((keyword) => lowerInput.includes(keyword));
+  };
+
+  // Function to fetch weather data
+  const fetchWeatherData = async (
+    location: string = "Jakarta"
+  ): Promise<WeatherData | null> => {
+    try {
+      const response = await fetch(
+        `${WEATHER_API_URL}?q=${encodeURIComponent(
+          location
+        )}&appid=${WEATHER_API_KEY}&units=metric`
+      );
+
+      if (!response.ok) {
+        throw new Error("Weather data fetch failed");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Weather fetch error:", error);
+      return null;
+    }
+  };
 
   // Save user ID to localStorage (only once).
   useEffect(() => {
@@ -366,7 +424,84 @@ const ChatInterface: React.FC = () => {
     addMessage(trimmedInput, "user");
 
     try {
-      if (isImageRequest(trimmedInput)) {
+      if (isWeatherRequest(trimmedInput)) {
+        setIsWeatherLoading(true);
+        addMessage("Fetching weather data...", "assistant");
+
+        // Extract location from input (simple approach)
+        const location =
+          trimmedInput.split(/weather in|cuaca di/i)[1]?.trim() || "Jakarta";
+
+        const weatherData = await fetchWeatherData(location);
+
+        if (weatherData) {
+          // Create weather widget HTML
+          const weatherWidget = `
+            <div class="weather-widget bg-white dark:bg-gray-700 rounded-lg p-4 shadow-md">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h2 class="text-xl font-bold text-gray-800 dark:text-white">${
+                    weatherData.name
+                  }</h2>
+                  <p class="text-gray-600 dark:text-gray-300">${
+                    weatherData.weather[0].description
+                  }</p>
+                </div>
+                <img 
+                  src="https://openweathermap.org/img/wn/${
+                    weatherData.weather[0].icon
+                  }@2x.png" 
+                  alt="Weather Icon" 
+                  class="w-16 h-16"
+                />
+              </div>
+              <div class="mt-4 grid grid-cols-3 gap-2">
+                <div>
+                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Temperature</p>
+                  <p class="text-lg font-bold text-gray-800 dark:text-white">${weatherData.main.temp.toFixed(
+                    1
+                  )}°C</p>
+                </div>
+                <div>
+                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Feels Like</p>
+                  <p class="text-lg font-bold text-gray-800 dark:text-white">${weatherData.main.feels_like.toFixed(
+                    1
+                  )}°C</p>
+                </div>
+                <div>
+                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Humidity</p>
+                  <p class="text-lg font-bold text-gray-800 dark:text-white">${
+                    weatherData.main.humidity
+                  }%</p>
+                </div>
+              </div>
+              <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                Wind Speed: ${weatherData.wind.speed} m/s
+              </div>
+            </div>
+          `;
+          // Update messages with weather widget
+          setMessages((prev) => {
+            const newMessages = prev.filter(
+              (msg) => msg.content !== "Fetching weather data..."
+            );
+            return [
+              ...newMessages,
+              {
+                id: uuidv4(),
+                content: weatherWidget,
+                type: "assistant",
+                timestamp: new Date(),
+              },
+            ];
+          });
+        } else {
+          updateLastAssistantMessage(
+            "Sorry, I couldn't fetch weather data. Please try again."
+          );
+        }
+        setIsWeatherLoading(false);
+      } else if (isImageRequest(trimmedInput)) {
         translated = await translatePrompt(trimmedInput);
 
         addMessage("Generating image...", "assistant");
