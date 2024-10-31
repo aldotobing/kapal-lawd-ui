@@ -153,7 +153,7 @@ select {
 
 .input-area {
   @apply w-full flex-none h-20 p-3 border-t border-gray-300 dark:border-gray-600 bg-[#3a3a3a] dark:bg-[#3a3a3a] flex gap-1.5;
-  box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 -2px 3px rgba(0, 0, 0, 0.1);
 }
 
 .input-field {

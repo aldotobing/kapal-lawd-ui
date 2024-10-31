@@ -437,6 +437,7 @@ const ChatInterface: React.FC = () => {
           className="input-field flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-full
              focus:outline-none focus:ring-2 focus:ring-blue-500 
              dark:bg-[#4a4a4a] dark:text-white"
+          style={{ marginRight: "-6px" }}
           disabled={isLoading}
         />
 
@@ -446,7 +447,7 @@ const ChatInterface: React.FC = () => {
           className={`send-button text-white ${
             !inputText.trim() || isLoading ? "bg-grey-500" : "bg-blue-500"
           }`}
-          style={{ marginLeft: "1px" }} // Inline style override
+          style={{ marginRight: "-1px" }} // Inline style override
         >
           <ArrowUp size={20} />
         </button>
