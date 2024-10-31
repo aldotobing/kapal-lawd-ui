@@ -3,6 +3,7 @@ import Header from "./components/Header";
 import MessageList from "./components/MessageList";
 import { Upload, ArrowUp } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
+import AnimatedText from "./components/AnimatedText";
 
 // Types
 type MessageType = "user" | "assistant";
@@ -29,6 +30,7 @@ const LANGUAGES: Language[] = [
 
 const API_URL = "https://kapal-lawd-be.aldo-tobing.workers.dev/";
 const IMAGE_API_URL = "https://image-gen.aldo-tobing.workers.dev/";
+const TRANSLATE_API_URL = "https://ai.aldo-tobing.workers.dev/";
 
 // Function to check if the input is a request for an image
 const isImageRequest = (input: string): boolean => {
@@ -41,7 +43,6 @@ const isImageRequest = (input: string): boolean => {
     "create an image",
     "generate an image",
     "gambarkan",
-    "gambar",
     "buatkan saya gambar",
     "buatkan gambar",
     "tolong buatkan gambar",
@@ -82,6 +83,41 @@ const sendImageRequest = async (prompt: string) => {
   }
 };
 
+// Function to send translation request
+const translatePrompt = async (content: string): Promise<string> => {
+  try {
+    const response = await fetch(TRANSLATE_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: [
+          {
+            role: "user",
+            content: `Please process the following message as follows: If the message is in Indonesian, translate it to English. If the message is already in English, improve its clarity and quality without providing any explanations or justifications. Return only the modified message: ${content}`,
+          },
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Translation request failed");
+    }
+
+    const data = await response.json();
+
+    // Ambil isi dari response tanpa parsing
+    if (data && data[0] && data[0].response && data[0].response.response) {
+      return data[0].response.response; // Kembalikan string yang dihasilkan
+    } else {
+      console.error("Translation API did not return expected structure", data);
+      return content; // Kembaliin konten asli jika gagal
+    }
+  } catch (error) {
+    console.error("Error during translation:", error);
+    return content; // Kembaliin konten asli jika ada error
+  }
+};
+
 const ChatInterface: React.FC = () => {
   // State
   const [messages, setMessages] = useState<Message[]>([]);
@@ -91,13 +127,10 @@ const ChatInterface: React.FC = () => {
   const [currentLanguage, setCurrentLanguage] = useState<Language>(
     LANGUAGES[0]
   );
-  //const [imageUrl, setImageUrl] = useState<string | null>(null);
   const userId = useRef(localStorage.getItem("user-id") || uuidv4());
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
-
-  //   const [isListening, setIsListening] = useState(false);
 
   // Save user ID to localStorage (only once).
   useEffect(() => {
@@ -327,14 +360,18 @@ const ChatInterface: React.FC = () => {
     const trimmedInput = inputText.trim();
     if (!trimmedInput || isLoading) return;
 
+    let translated = "";
+
     setInputText("");
     setIsLoading(true);
     addMessage(trimmedInput, "user");
 
     try {
       if (isImageRequest(trimmedInput)) {
+        translated = await translatePrompt(trimmedInput);
+
         addMessage("Generating image...", "assistant");
-        const generatedImageUrl = await sendImageRequest(trimmedInput);
+        const generatedImageUrl = await sendImageRequest(translated);
 
         if (generatedImageUrl) {
           const imageMessage: Message = {
@@ -361,7 +398,7 @@ const ChatInterface: React.FC = () => {
         }
       } else {
         addMessage("", "assistant");
-        const stream = await sendMessageToAPI(trimmedInput);
+        const stream = await sendMessageToAPI(translated);
         if (stream) {
           await processStream(stream, (response) =>
             updateLastAssistantMessage(response)

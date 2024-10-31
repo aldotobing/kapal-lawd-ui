@@ -1,0 +1,18 @@
+/* AnimatedText.css */
+.animated-text {
+  display: inline-flex;
+}
+
+.char {
+  animation: bounce 0.6s infinite alternate;
+  display: inline-block;
+}
+
+@keyframes bounce {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-10px);
+  }
+}
