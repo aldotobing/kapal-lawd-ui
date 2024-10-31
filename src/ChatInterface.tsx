@@ -438,7 +438,7 @@ const ChatInterface: React.FC = () => {
         if (weatherData) {
           // Create weather widget HTML
           const weatherWidget = `
-            <div class="weather-widget bg-opacity-20 bg-white dark:bg-opacity-20 dark:bg-gray-700 rounded-3xl p-4 shadow-md">
+            <div class="weather-widget bg-opacity-90 bg-white dark:bg-opacity-90 dark:bg-gray-700 rounded-3xl p-4 shadow-md">
               <div class="flex items-center justify-between">
                 <div>
                   <h2 class="text-xl font-bold text-gray-800 dark:text-white">${
