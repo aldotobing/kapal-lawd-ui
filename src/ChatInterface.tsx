@@ -154,6 +154,7 @@ const ChatInterface: React.FC = () => {
   const isWeatherRequest = (input: string): boolean => {
     const weatherKeywords = [
       "cuaca hari ini",
+      "cuaca sekarang",
       "cuaca di",
       "weather today",
       "what's the weather",
@@ -437,7 +438,7 @@ const ChatInterface: React.FC = () => {
         if (weatherData) {
           // Create weather widget HTML
           const weatherWidget = `
-            <div class="weather-widget bg-white dark:bg-gray-700 rounded-lg p-4 shadow-md">
+            <div class="weather-widget bg-opacity-20 bg-white dark:bg-opacity-20 dark:bg-gray-700 rounded-3xl p-4 shadow-md">
               <div class="flex items-center justify-between">
                 <div>
                   <h2 class="text-xl font-bold text-gray-800 dark:text-white">${
@@ -457,7 +458,7 @@ const ChatInterface: React.FC = () => {
               </div>
               <div class="mt-4 grid grid-cols-3 gap-2">
                 <div>
-                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Temperature</p>
+                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Temp</p>
                   <p class="text-lg font-bold text-gray-800 dark:text-white">${weatherData.main.temp.toFixed(
                     1
                   )}°C</p>
