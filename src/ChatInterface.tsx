@@ -30,7 +30,7 @@ const LANGUAGES: Language[] = [
 const API_URL = "https://kapal-lawd-be.aldo-tobing.workers.dev/";
 const IMAGE_API_URL = "https://image-gen.aldo-tobing.workers.dev/";
 const TRANSLATE_API_URL = "https://ai.aldo-tobing.workers.dev/";
-const WEATHER_API_KEY = process.env.REACT_APP_WEATHER_API_KEY;
+const REACT_APP_WEATHER_API_KEY = process.env.REACT_APP_WEATHER_API_KEY;
 const WEATHER_API_URL = "https://api.openweathermap.org/data/2.5/weather";
 
 interface WeatherData {
@@ -175,7 +175,7 @@ const ChatInterface: React.FC = () => {
       const response = await fetch(
         `${WEATHER_API_URL}?q=${encodeURIComponent(
           location
-        )}&appid=${WEATHER_API_KEY}&units=metric`
+        )}&appid=${REACT_APP_WEATHER_API_KEY}&units=metric`
       );
 
       if (!response.ok) {
