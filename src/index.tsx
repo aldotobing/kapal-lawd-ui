@@ -3,7 +3,7 @@ import ReactDOM from "react-dom/client";
 import ChatInterface from "./ChatInterface";
 import "./index.css";
 import "./assets/code.css";
-import * as serviceWorker from "./ServiceWorker.js";
+import { register } from "./ServiceWorker";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -15,11 +15,8 @@ root.render(
   </React.StrictMode>
 );
 
-serviceWorker.register({
-  onSuccess: () => {
-    console.log("Service Worker registered successfully");
-  },
-  onUpdate: () => {
-    console.log("New content is available; please refresh.");
-  },
-});
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    register();
+  });
+}
