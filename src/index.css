@@ -16,60 +16,6 @@
   }
 }
 
-.thinking-indicator {
-  position: absolute;
-  bottom: 5px; /* Tetap 10px dari bawah */
-  left: 50%;
-  transform: translateX(-50%);
-  font-style: italic;
-  color: grey;
-  animation: typing 1.5s steps(10) infinite;
-}
-
-@keyframes typing {
-  0% {
-    content: "T";
-  }
-  10% {
-    content: "Th";
-  }
-  20% {
-    content: "Thi";
-  }
-  30% {
-    content: "Thin";
-  }
-  40% {
-    content: "Think";
-  }
-  50% {
-    content: "Thinki";
-  }
-  60% {
-    content: "Thinkin";
-  }
-  70% {
-    content: "Thinking";
-  }
-  80% {
-    content: "Thinking.";
-  }
-  90% {
-    content: "Thinking..";
-  }
-  100% {
-    content: "Thinking...";
-  }
-}
-
-.thinking-indicator::after {
-  display: inline-block;
-  content: "";
-  animation: typing 1.5s steps(10) infinite;
-  font-style: italic;
-  color: grey;
-}
-
 @keyframes blink {
   0%,
   100% {
@@ -206,12 +152,12 @@ select {
 }
 
 .input-area {
-  @apply w-full h-20 p-2 border-t border-gray-300 dark:border-gray-600 bg-[#3a3a3a] dark:bg-[#3a3a3a] flex gap-2;
+  @apply w-full flex-none h-20 p-3 border-t border-gray-300 dark:border-gray-600 bg-[#3a3a3a] dark:bg-[#3a3a3a] flex gap-1.5;
   box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .input-field {
-  @apply flex-1 h-10 p-4 border border-gray-300 dark:border-gray-600 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#4a4a4a] dark:text-white;
+  @apply flex-1 h-10 p-3 border border-gray-300 dark:border-gray-600 rounded-3xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#4a4a4a] dark:text-white;
   transition: border-color 0.3s ease;
 }
 

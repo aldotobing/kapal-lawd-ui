@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { format } from "date-fns";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
+import ThinkingIndicator from "./Thingking";
 
 interface Message {
   id: string;
@@ -85,9 +86,9 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
         <div className={`max-w-[95%] ${isUser ? "order-2" : "order-1"} -ml-1`}>
           <div className="flex flex-col">
             <div
-              className={`px-2 py-1 text-base transition-all duration-200 ${
+              className={`inline-block px-4 py-2 text-base transition-all duration-200 ${
                 isUser
-                  ? "bg-blue-500 text-white rounded-xl rounded-br-none"
+                  ? "bg-blue-500 text-white rounded-3xl rounded-br-none text-pretty"
                   : "dark:text-white rounded-md rounded-bl-none"
               }`}
             >
@@ -111,9 +112,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
       {messages.map((msg) => (
         <MessageBubble key={msg.id} message={msg} />
       ))}
-      {showThinking && (
-        <div className="thinking-indicator text-center text-white text-sm p-1"></div>
-      )}
+      {showThinking && <ThinkingIndicator />}
     </div>
   );
 };
