@@ -154,6 +154,7 @@ const ChatInterface: React.FC = () => {
   const isWeatherRequest = (input: string): boolean => {
     const weatherKeywords = [
       "cuaca hari ini",
+      "cuaca hari ini di",
       "cuaca sekarang",
       "cuaca di",
       "weather today",
