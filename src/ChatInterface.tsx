@@ -176,7 +176,7 @@ const ChatInterface: React.FC = () => {
       const response = await fetch(
         `${WEATHER_API_URL}?q=${encodeURIComponent(
           location
-        )}&appid=${REACT_APP_WEATHER_API_KEY}&units=metric`
+        )}&lang=id&appid=${REACT_APP_WEATHER_API_KEY}&units=metric`
       );
 
       if (!response.ok) {
