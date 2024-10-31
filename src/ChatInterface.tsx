@@ -3,7 +3,6 @@ import Header from "./components/Header";
 import MessageList from "./components/MessageList";
 import { Upload, ArrowUp } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
-import AnimatedText from "./components/AnimatedText";
 
 // Types
 type MessageType = "user" | "assistant";
