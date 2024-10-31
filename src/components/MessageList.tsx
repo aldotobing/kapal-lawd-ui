@@ -86,14 +86,17 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
         <div className={`max-w-[90%] ${isUser ? "order-2" : "order-1"} -ml-1`}>
           <div className="flex flex-col">
             <div
-              className={`inline-block px-2 py-2 text-sm transition-all duration-200 ${
+              className={`inline-block text-base transition-all duration-200 ${
                 isUser
-                  ? " text-white rounded-2xl rounded-br-2xl text-pretty"
-                  : "dark:text-white rounded-md rounded-bl-3xl"
+                  ? "text-white rounded-2xl rounded-br-2xl text-pretty"
+                  : "dark:text-white rounded-md rounded-bl-3xl text-pretty"
               }`}
               style={{
-                padding: isUser ? "10px 16px" : "8px 11px",
+                padding: isUser ? "8px 15px" : "8px 10px",
                 ...(isUser ? { backgroundColor: "#2f2f2f" } : {}),
+                maxWidth: "100%", // Allow bubble to expand to full width of its container
+                // whiteSpace: "pre-wrap", // Keep text wrapping naturally
+                // wordBreak: "break-word", // Prevent long words from overflowing
               }}
             >
               <MessageContent message={message} />
@@ -103,7 +106,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
                 isUser ? "text-right" : "text-left"
               }`}
             >
-              <p className="ml-2 text-xs">{formattedTime}</p>
+              <p className="ml-2.5 text-xs">{formattedTime}</p>
             </div>
           </div>
         </div>
