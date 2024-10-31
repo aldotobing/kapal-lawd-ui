@@ -74,7 +74,7 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-start; /* Mengatur posisi konten ke atas */
-  padding: 5px; /* Atur padding sesuai kebutuhan */
+  padding: 2px; /* Atur padding sesuai kebutuhan */
   margin: 0; /* Pastikan margin tidak menyebabkan pergeseran */
 }
 
@@ -104,8 +104,8 @@
 body {
   margin: 0;
   font-family: "Roboto", sans-serif;
-  background-color: #3a3a3a;
-  color: #3a3a3a;
+  background-color: #212121;
+  color: #212121;
   transition: background-color 0.3s ease, color 0.3s ease;
   line-height: 1;
   text-decoration: none; /* Hilangkan dekorasi teks */
@@ -124,22 +124,13 @@ select {
 
 /* Dark Mode */
 .dark {
-  background-color: #222;
+  background-color: #000000;
   color: #000000;
   transition: background-color 0.3s ease;
 }
 
 .flex-1 {
   background-color: transparent;
-}
-
-.message {
-  @apply max-w-[70%] mb-3 p-3 rounded-lg break-words shadow-md transition-colors duration-300;
-}
-
-.message.user {
-  @apply bg-blue-500 text-white self-end;
-  border-top-right-radius: 0;
 }
 
 .message.bot {

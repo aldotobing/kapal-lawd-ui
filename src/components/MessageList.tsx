@@ -83,19 +83,23 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
 
     return (
       <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-1`}>
-        <div className={`max-w-[95%] ${isUser ? "order-2" : "order-1"} -ml-1`}>
+        <div className={`max-w-[90%] ${isUser ? "order-2" : "order-1"} -ml-1`}>
           <div className="flex flex-col">
             <div
-              className={`inline-block px-4 py-2 text-base transition-all duration-200 ${
+              className={`inline-block px-2 py-2 text-sm transition-all duration-200 ${
                 isUser
-                  ? "bg-blue-500 text-white rounded-3xl rounded-br-none text-pretty"
-                  : "dark:text-white rounded-md rounded-bl-none"
+                  ? " text-white rounded-2xl rounded-br-2xl text-pretty"
+                  : "dark:text-white rounded-md rounded-bl-3xl"
               }`}
+              style={{
+                padding: isUser ? "10px 16px" : "8px 11px",
+                ...(isUser ? { backgroundColor: "#2f2f2f" } : {}),
+              }}
             >
               <MessageContent message={message} />
             </div>
             <div
-              className={`mt-1 text-[15px] tracking-wide text-gray-400 ${
+              className={`mt-1 text-[12px] tracking-wide text-gray-400 ${
                 isUser ? "text-right" : "text-left"
               }`}
             >
