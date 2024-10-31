@@ -18,7 +18,7 @@ const Header: React.FC<HeaderProps> = ({
 }) => (
   <div className="p-2 flex justify-between items-center">
     <h1
-      className="text-xl font-bold flex items-center ml-5 mb-1"
+      className="text-xl font-bold flex items-center ml-5 mt-1"
       style={{
         fontFamily:
           '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',

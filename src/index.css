@@ -72,9 +72,9 @@
 
 .chat-container {
   display: flex;
-  flex-direction: column; /* Membuat konten dalam kolom */
+  flex-direction: column;
   justify-content: flex-start; /* Mengatur posisi konten ke atas */
-  padding: 16px; /* Atur padding sesuai kebutuhan */
+  padding: 5px; /* Atur padding sesuai kebutuhan */
   margin: 0; /* Pastikan margin tidak menyebabkan pergeseran */
 }
 
