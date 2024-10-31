@@ -397,7 +397,7 @@ const ChatInterface: React.FC = () => {
         }
       } else {
         addMessage("", "assistant");
-        const stream = await sendMessageToAPI(translated);
+        const stream = await sendMessageToAPI(trimmedInput);
         if (stream) {
           await processStream(stream, (response) =>
             updateLastAssistantMessage(response)
