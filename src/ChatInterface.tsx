@@ -405,9 +405,10 @@ const ChatInterface: React.FC = () => {
     abortControllerRef.current = new AbortController();
 
     const sanitizedInput = sanitizeInput(userInput);
+    const weatherIntent = extractWeatherIntent(userInput);
     const messagesPayload = [{ role: "user", content: sanitizedInput }];
 
-    if (weatherContext) {
+    if (weatherContext && weatherIntent.isWeather) {
       messagesPayload.unshift({
         role: "system",
         content: `Current weather context: Location: ${weatherContext.location}, 
@@ -501,6 +502,10 @@ const ChatInterface: React.FC = () => {
             },
           ];
         });
+        // Clear weather context after 5 seconds
+        setTimeout(() => {
+          setWeatherContext(null);
+        }, 5000);
       } else {
         updateLastAssistantMessage(
           `I'm sorry, I couldn't find weather information for ${
