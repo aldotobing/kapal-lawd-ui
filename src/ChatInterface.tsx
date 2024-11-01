@@ -43,10 +43,16 @@ interface WeatherData {
   weather: Array<{
     description: string;
     icon: string;
+    main: string;
   }>;
   wind: {
     speed: number;
   };
+}
+interface WeatherContext {
+  location: string;
+  data: WeatherData | null;
+  lastUpdated: Date;
 }
 
 // Function to check if the input is a request for an image
@@ -150,45 +156,171 @@ const ChatInterface: React.FC = () => {
   const abortControllerRef = useRef<AbortController | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isWeatherLoading, setIsWeatherLoading] = useState(false);
+  const [weatherContext, setWeatherContext] = useState<WeatherContext | null>(
+    null
+  );
 
-  const isWeatherRequest = (input: string): boolean => {
-    const weatherKeywords = [
-      "cuaca hari ini",
-      "cuaca hari ini di",
-      "cuaca sekarang",
-      "cuaca di",
-      "weather today",
-      "what's the weather",
-      "weather in",
-      "temperature in",
-      "suhu di",
+  const extractWeatherIntent = (
+    input: string
+  ): { isWeather: boolean; location?: string } => {
+    const weatherPatterns = [
+      { regex: /weather\s+(?:in|at|for)\s+([a-zA-Z\s]+)/i, group: 1 },
+      { regex: /cuaca\s+(?:di|untuk)\s+([a-zA-Z\s]+)/i, group: 1 },
+      {
+        regex: /(?:what's|how's)\s+the\s+weather\s+(?:in|at)\s+([a-zA-Z\s]+)/i,
+        group: 1,
+      },
+      { regex: /bagaimana\s+cuaca\s+(?:di|untuk)\s+([a-zA-Z\s]+)/i, group: 1 },
+    ];
+
+    for (const pattern of weatherPatterns) {
+      const match = input.match(pattern.regex);
+      if (match) {
+        return { isWeather: true, location: match[pattern.group].trim() };
+      }
+    }
+
+    const generalWeatherKeywords = [
+      "weather",
+      "cuaca",
+      "temperature",
+      "suhu",
+      "forecast",
       "prakiraan cuaca",
     ];
 
-    const lowerInput = input.toLowerCase();
-    return weatherKeywords.some((keyword) => lowerInput.includes(keyword));
+    if (
+      generalWeatherKeywords.some((keyword) =>
+        input.toLowerCase().includes(keyword)
+      )
+    ) {
+      return { isWeather: true };
+    }
+
+    return { isWeather: false };
   };
 
   // Function to fetch weather data
   const fetchWeatherData = async (
-    location: string = "Jakarta"
+    location?: string,
+    latitude?: number,
+    longitude?: number
   ): Promise<WeatherData | null> => {
     try {
-      const response = await fetch(
-        `${WEATHER_API_URL}?q=${encodeURIComponent(
-          location
-        )}&lang=id&appid=${REACT_APP_WEATHER_API_KEY}&units=metric`
-      );
+      const url =
+        latitude && longitude
+          ? `${WEATHER_API_URL}?lat=${latitude}&lon=${longitude}&appid=${REACT_APP_WEATHER_API_KEY}&lang=id&units=metric`
+          : `${WEATHER_API_URL}?q=${encodeURIComponent(
+              location || "Jakarta"
+            )}&appid=${REACT_APP_WEATHER_API_KEY}&lang=id&units=metric`;
 
-      if (!response.ok) {
-        throw new Error("Weather data fetch failed");
-      }
-
-      return await response.json();
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Weather data fetch failed");
+      const data = await response.json();
+      return data;
     } catch (error) {
       console.error("Weather fetch error:", error);
       return null;
     }
+  };
+
+  const generateWeatherWidget = (weatherData: WeatherData) => {
+    return `
+      <div class="weather-widget bg-white dark:bg-gray-700 rounded-lg p-4 shadow-md my-2">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-bold text-gray-800 dark:text-white">${
+              weatherData.name
+            }</h2>
+            <p class="text-gray-600 dark:text-gray-300 capitalize">${
+              weatherData.weather[0].description
+            }</p>
+          </div>
+          <img 
+            src="https://openweathermap.org/img/wn/${
+              weatherData.weather[0].icon
+            }@2x.png" 
+            alt="Weather Icon" 
+            class="w-16 h-16"
+          />
+        </div>
+        <div class="mt-4 grid grid-cols-3 gap-2">
+          <div>
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Temp</p>
+            <p class="text-lg font-bold text-gray-800 dark:text-white">${weatherData.main.temp.toFixed(
+              1
+            )}°C</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Feels Like</p>
+            <p class="text-lg font-bold text-gray-800 dark:text-white">${weatherData.main.feels_like.toFixed(
+              1
+            )}°C</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Humidity</p>
+            <p class="text-lg font-bold text-gray-800 dark:text-white">${
+              weatherData.main.humidity
+            }%</p>
+          </div>
+        </div>
+        <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          Wind Speed: ${weatherData.wind.speed} m/s
+        </div>
+      </div>
+    `;
+  };
+
+  const generateWeatherDescription = (weatherData: WeatherData): string => {
+    const temp = weatherData.main.temp;
+    const feelsLike = weatherData.main.feels_like;
+    const humidity = weatherData.main.humidity;
+    const description = weatherData.weather[0].description;
+    const windSpeed = weatherData.wind.speed;
+
+    let commentary = "";
+
+    // Temperature commentary
+    if (temp >= 30) {
+      commentary += "Hari ini cukup panas. ";
+    } else if (temp >= 25) {
+      commentary += "Suhunya hangat. ";
+    } else if (temp >= 20) {
+      commentary += "Suhunya nyaman. ";
+    } else {
+      commentary += "Suhunya relatif sejuk. ";
+    }
+
+    // Feels like commentary
+    if (Math.abs(temp - feelsLike) > 2) {
+      commentary += `Suhu sebenarnya adalah ${temp.toFixed(
+        1
+      )}°C, terasa seperti ${feelsLike.toFixed(1)}°C. `;
+    }
+
+    // Humidity commentary
+    if (humidity > 80) {
+      commentary +=
+        "Kelembapan sangat tinggi, yang mungkin membuat terasa kurang nyaman. ";
+    } else if (humidity < 30) {
+      commentary += "Udara hari ini cukup kering. ";
+    }
+
+    commentary += `Saat ini, cuacanya ${description}. `;
+
+    if (windSpeed > 10) {
+      commentary += `Selain itu, anginnya cukup kencang dengan kecepatan ${windSpeed.toFixed(
+        1
+      )} m/s.`;
+    } else if (windSpeed > 5) {
+      commentary += `Ada angin sepoi-sepoi dengan kecepatan ${windSpeed.toFixed(
+        1
+      )} m/s.`;
+    } else {
+      commentary += `Kecepatan angin tenang di ${windSpeed.toFixed(1)} m/s.`;
+    }
+
+    return commentary;
   };
 
   // Save user ID to localStorage (only once).
@@ -275,6 +407,15 @@ const ChatInterface: React.FC = () => {
     const sanitizedInput = sanitizeInput(userInput);
     const messagesPayload = [{ role: "user", content: sanitizedInput }];
 
+    if (weatherContext) {
+      messagesPayload.unshift({
+        role: "system",
+        content: `Current weather context: Location: ${weatherContext.location}, 
+                 Temperature: ${weatherContext.data?.main.temp}°C, 
+                 Condition: ${weatherContext.data?.weather[0].description}`,
+      });
+    }
+
     try {
       const response = await fetch(API_URL, {
         method: "POST",
@@ -294,6 +435,106 @@ const ChatInterface: React.FC = () => {
       throw error;
     }
   };
+
+  // Modify handleWeatherRequest to explicitly set isHTML flag
+  const handleWeatherRequest = async (location?: string) => {
+    setIsWeatherLoading(true);
+    addMessage("Menghubungi pakar Cuaca...", "assistant");
+    setTimeout(async () => {
+      // Fungsi untuk handle fetch data cuaca dengan lokasi atau fallback
+      const fetchWithLocation = async () => {
+        if (location) {
+          // Jika lokasi diberikan, pakai nama kota tersebut
+          return await fetchWeatherData(location);
+        } else if (navigator.geolocation) {
+          // Jika lokasi tidak diberikan, coba dapatkan koordinat user
+          return new Promise<WeatherData | null>((resolve) => {
+            navigator.geolocation.getCurrentPosition(
+              async (position) => {
+                const { latitude, longitude } = position.coords;
+                const data = await fetchWeatherData(
+                  undefined,
+                  latitude,
+                  longitude
+                );
+                resolve(data);
+              },
+              async (error) => {
+                console.error("Geolocation error:", error);
+                const fallbackData = await fetchWeatherData("Jakarta"); // Default fallback
+                resolve(fallbackData);
+              }
+            );
+          });
+        } else {
+          return await fetchWeatherData("Jakarta");
+        }
+      };
+
+      // Panggil fetch dengan handling lokasi
+      const weatherData = await fetchWithLocation();
+
+      if (weatherData) {
+        setWeatherContext({
+          location: location || "Your location",
+          data: weatherData,
+          lastUpdated: new Date(),
+        });
+
+        const weatherDescription = generateWeatherDescription(weatherData);
+        const response = `${weatherDescription}\n${generateWeatherWidget(
+          weatherData
+        )}\n\nData provided by <em style="color: #eb6e4b;">OpenWeather</em>.`;
+
+        setMessages((prev) => {
+          const newMessages = prev.filter(
+            (msg) => msg.content !== "Menghubungi pakar Cuaca..."
+          );
+          return [
+            ...newMessages,
+            {
+              id: uuidv4(),
+              content: response,
+              type: "assistant",
+              timestamp: new Date(),
+              isHTML: true,
+            },
+          ];
+        });
+      } else {
+        updateLastAssistantMessage(
+          `I'm sorry, I couldn't find weather information for ${
+            location || "your location"
+          }. Could you please verify the location name or try another city?`
+        );
+      }
+
+      setIsWeatherLoading(false);
+    }, 2000); // Add a 2-second loading delay
+  };
+
+  // Add CSS to ensure proper widget rendering
+  useEffect(() => {
+    const style = document.createElement("style");
+    style.textContent = `
+      .message-widget {
+        margin: 1rem 0;
+      }
+      .weather-widget {
+        overflow: hidden;
+        transition: all 0.3s ease;
+      }
+      .weather-widget img {
+        display: block;
+        width: 64px;
+        height: 64px;
+      }
+    `;
+    document.head.appendChild(style);
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
 
   // Update fungsi processStream
   const processStream = async (
@@ -426,83 +667,10 @@ const ChatInterface: React.FC = () => {
     addMessage(trimmedInput, "user");
 
     try {
-      if (isWeatherRequest(trimmedInput)) {
-        setIsWeatherLoading(true);
-        addMessage("Fetching weather data...", "assistant");
-
-        // Extract location from input (simple approach)
-        const location =
-          trimmedInput.split(/weather in|cuaca di/i)[1]?.trim() || "Jakarta";
-
-        const weatherData = await fetchWeatherData(location);
-
-        if (weatherData) {
-          // Create weather widget HTML
-          const weatherWidget = `
-            <div class="weather-widget bg-opacity-90 bg-white dark:bg-opacity-90 dark:bg-gray-700 rounded-3xl p-4 shadow-md">
-              <div class="flex items-center justify-between">
-                <div>
-                  <h2 class="text-xl font-bold text-gray-800 dark:text-white">${
-                    weatherData.name
-                  }</h2>
-                  <p class="text-gray-600 dark:text-gray-300">${
-                    weatherData.weather[0].description
-                  }</p>
-                </div>
-                <img 
-                  src="https://openweathermap.org/img/wn/${
-                    weatherData.weather[0].icon
-                  }@2x.png" 
-                  alt="Weather Icon" 
-                  class="w-16 h-16"
-                />
-              </div>
-              <div class="mt-4 grid grid-cols-3 gap-2">
-                <div>
-                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Temp</p>
-                  <p class="text-lg font-bold text-gray-800 dark:text-white">${weatherData.main.temp.toFixed(
-                    1
-                  )}°C</p>
-                </div>
-                <div>
-                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Feels Like</p>
-                  <p class="text-lg font-bold text-gray-800 dark:text-white">${weatherData.main.feels_like.toFixed(
-                    1
-                  )}°C</p>
-                </div>
-                <div>
-                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Humidity</p>
-                  <p class="text-lg font-bold text-gray-800 dark:text-white">${
-                    weatherData.main.humidity
-                  }%</p>
-                </div>
-              </div>
-              <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                Wind Speed: ${weatherData.wind.speed} m/s
-              </div>
-            </div>
-          `;
-          // Update messages with weather widget
-          setMessages((prev) => {
-            const newMessages = prev.filter(
-              (msg) => msg.content !== "Fetching weather data..."
-            );
-            return [
-              ...newMessages,
-              {
-                id: uuidv4(),
-                content: weatherWidget,
-                type: "assistant",
-                timestamp: new Date(),
-              },
-            ];
-          });
-        } else {
-          updateLastAssistantMessage(
-            "Sorry, I couldn't fetch weather data. Please try again."
-          );
-        }
-        setIsWeatherLoading(false);
+      const weatherIntent = extractWeatherIntent(trimmedInput);
+      if (weatherIntent.isWeather) {
+        await handleWeatherRequest(weatherIntent.location);
+        //addMessage("Fetching weather data...", "assistant");
       } else if (isImageRequest(trimmedInput)) {
         translated = await translatePrompt(trimmedInput);
 
@@ -524,13 +692,15 @@ const ChatInterface: React.FC = () => {
               (msg) =>
                 !(
                   msg.type === "assistant" &&
-                  msg.content === "Generating image..."
+                  msg.content === "Membuat Gambar..."
                 )
             );
             return [...newMessages, imageMessage];
           });
         } else {
-          updateLastAssistantMessage("Sorry, I couldn't generate the image.");
+          updateLastAssistantMessage(
+            "Maaf, gue sedang nggak bisa bikin gambar x_x. Silakan dicoba lagi"
+          );
         }
       } else {
         addMessage("", "assistant");
@@ -543,7 +713,7 @@ const ChatInterface: React.FC = () => {
       }
     } catch (error) {
       console.error(error);
-      updateLastAssistantMessage("An error occurred. Please try again.");
+      updateLastAssistantMessage("Error kwkwkwk. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -633,7 +803,38 @@ const ChatInterface: React.FC = () => {
 const formatMessage = (rawContent: string) => {
   if (!rawContent) return { content: "" };
 
+  // Check if the content contains a weather widget
+  const hasWeatherWidget = rawContent.includes('class="weather-widget"');
+
+  if (hasWeatherWidget) {
+    // Split the content into text and widget parts
+    const [textPart, ...widgetParts] = rawContent.split(
+      '<div class="weather-widget"'
+    );
+
+    // Format the text part
+    let formattedContent = textPart;
+
+    // Add the widget back with proper formatting
+    if (widgetParts.length > 0) {
+      formattedContent += `<div class="message-widget"><div class="weather-widget"${widgetParts.join(
+        '<div class="weather-widget"'
+      )}</div>`;
+    }
+
+    return {
+      content: formattedContent,
+      isHTML: true,
+    };
+  }
+
   let formattedContent = rawContent;
+
+  // Handle paragraphs
+  formattedContent = formattedContent
+    .split("\n\n")
+    .map((para) => `<p>${para}</p>`)
+    .join("");
 
   // Handle paragraphs
   formattedContent = formattedContent
@@ -698,6 +899,7 @@ const formatMessage = (rawContent: string) => {
 
   return {
     content: formattedContent,
+    isHTML: false,
   };
 };
 

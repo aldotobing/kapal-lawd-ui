@@ -11,6 +11,7 @@ interface Message {
   timestamp: Date;
   isImage?: boolean;
   imageUrl?: string;
+  isHTML?: boolean;
 }
 
 interface MessageListProps {
@@ -64,6 +65,9 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
           }}
         />
       );
+    }
+    if (message.isHTML) {
+      return <div dangerouslySetInnerHTML={{ __html: message.content }} />;
     }
 
     return (
