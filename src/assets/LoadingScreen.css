@@ -1,0 +1,177 @@
+/* Global styles */
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  background-color: #f1f3f6; /* Light gray background, macOS-like */
+  color: #333; /* Neutral dark gray text */
+}
+
+/* Container for the loader and checkmark */
+.loader-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #f7f7f7;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  border-radius: 12px; /* Rounded corners */
+  /* background: linear-gradient(135deg, #f1f3f6, #e0e0e0); Soft gradient */
+}
+
+/* Loader (Bouncing Dots) styling */
+.loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.loader div {
+  width: 12px;
+  height: 12px;
+  background-color: #007aff; /* iOS blue */
+  border-radius: 50%;
+  animation: bounce 1.2s infinite ease-in-out;
+}
+
+.loader div:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.loader div:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.loader div:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* Bounce animation for dots */
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px); /* Bouncing effect */
+  }
+}
+
+/* Fade-in effect for loading text */
+.loading-text {
+  font-size: 18px;
+  color: #555;
+  font-weight: 600;
+  margin-top: 10px;
+  text-align: center;
+  opacity: 0;
+  animation: fadeInText 1s ease-in-out forwards;
+}
+
+/* Fade-in animation for text */
+@keyframes fadeInText {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Checkmark container styling */
+.checkmark-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 0;
+  animation: fadeIn 0.8s ease-in-out forwards;
+}
+
+.checkmark {
+  font-size: 60px;
+  color: #34c759; /* iOS Green (success) */
+  margin-bottom: 20px;
+  animation: scaleIn 0.5s ease-in-out forwards;
+}
+
+/* Fade-in animation for checkmark */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Scale-in animation for checkmark */
+@keyframes scaleIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Final message text styling */
+.checkmark-container p {
+  font-size: 20px;
+  font-weight: 600;
+  color: #212529; /* Darker text for final message */
+  margin: 0;
+  opacity: 0;
+  animation: fadeInText 1.5s ease-in-out 0.5s forwards;
+}
+
+/* Loader container additional styling */
+.loader-container p {
+  font-size: 16px;
+  font-weight: 500;
+  color: #999; /* Lighter gray text */
+  margin: 0;
+}
+
+/* Subtle background gradient for loader container */
+.loader-container {
+  background: linear-gradient(135deg, #f1f3f6, #e0e0e0); /* Soft gradient */
+}
+
+/* Add soft shadows and rounded edges for modern look */
+.loader,
+.checkmark-container {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  border-radius: 12px; /* Rounded corners */
+}
+
+/* Fade-in animation for chat interface */
+@keyframes fadeInChat {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Styling for chat interface */
+.chat-interface {
+  opacity: 0;
+  animation: fadeInChat 1s ease-in-out forwards;
+  margin-top: 20px;
+  font-size: 18px;
+  color: #333;
+}

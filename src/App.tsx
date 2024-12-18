@@ -1,10 +1,19 @@
 import { HelmetProvider, Helmet } from "react-helmet-async";
-import { lazy, Suspense } from "react";
-import "./assets/App.css";
+import { lazy, Suspense, useEffect, useState } from "react";
 import LoadingScreen from "./components/LoadingScreen";
+
 const ChatInterface = lazy(() => import("./ChatInterface"));
 
 function App() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false); // Berhenti loading setelah 4500ms
+    }, 4500);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <HelmetProvider>
       <div className="App">
@@ -19,10 +28,16 @@ function App() {
             content="AI, Chat, Assistant, Kapal Lawd, Weather, Aldo Tobing, Java, Golang, PostgreSQL, DevOps, Software Engineer, Docker, Backend Developer"
           />
         </Helmet>
-        {}
-        <Suspense fallback={<LoadingScreen />}>
-          <ChatInterface />
-        </Suspense>
+
+        {/* Show LoadingScreen while isLoading is true */}
+        {isLoading ? (
+          <LoadingScreen minimumDuration={5000} />
+        ) : (
+          // Suspense will wrap the ChatInterface and display LoadingScreen as a fallback until it's ready
+          <Suspense fallback={<LoadingScreen minimumDuration={0} />}>
+            <ChatInterface />
+          </Suspense>
+        )}
       </div>
     </HelmetProvider>
   );
