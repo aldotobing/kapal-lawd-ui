@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { format } from "date-fns";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
-import ThinkingIndicator from "./Thingking";
+import ThinkingIndicator from "./ThinkingIndicator";
 
 interface Message {
   id: string;
@@ -56,7 +56,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
           ref={imgRef}
           src={message.imageUrl}
           alt="Generated"
-          className="max-w-full h-auto rounded-lg"
+          className="max-w-full rounded-lg"
           onError={(e) => {
             console.error("Image load error:", e);
             if (message.imageUrl) {
@@ -67,11 +67,17 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
       );
     }
     if (message.isHTML) {
-      return <div dangerouslySetInnerHTML={{ __html: message.content }} />;
+      return (
+        <div
+          className="text-base"
+          dangerouslySetInnerHTML={{ __html: message.content }}
+        />
+      );
     }
 
     return (
       <div
+        className="text-base"
         dangerouslySetInnerHTML={{
           __html: DOMPurify.sanitize(marked(message.content.trim())),
         }}
@@ -86,35 +92,28 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
       : "Invalid Date";
 
     return (
-      <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-2`}>
-        <div
-          className={`max-w-[90%] ${
-            isUser ? "order-2 self-end" : "order-1 self-start"
-          } -ml-1`}
-        >
+      <div
+        className={`flex ${
+          isUser ? "justify-end" : "justify-start"
+        } mb-4 items-end`}
+      >
+        <div className={`max-w-[80%] ${isUser ? "order-2" : "order-1"}`}>
           <div className="flex flex-col">
             <div
-              className={`inline-block text-base transition-all duration-200 ${
+              className={`px-4 py-3 text-base rounded-2xl ${
                 isUser
-                  ? "text-white rounded-2xl rounded-br-2xl text-pretty"
-                  : "dark:text-white rounded-md rounded-bl-3xl text-pretty"
-              }`}
-              style={{
-                padding: isUser ? "8px 15px" : "1px 10px",
-                ...(isUser ? { backgroundColor: "#2f2f2f" } : {}),
-                maxWidth: "100%", // Allow bubble to expand to full width of its container
-                wordBreak: "break-word",
-                alignSelf: isUser ? "flex-end" : "flex-start",
-              }}
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 dark:bg-gray-700 dark:text-white"
+              } shadow-md`}
             >
               <MessageContent message={message} />
             </div>
             <div
-              className={`mt-1 text-[12px] tracking-wide text-gray-400 ${
+              className={`mt-1 text-xs text-gray-400 ${
                 isUser ? "text-right" : "text-left"
               }`}
             >
-              <p className="ml-2.5 text-xs">{formattedTime}</p>
+              <p>{formattedTime}</p>
             </div>
           </div>
         </div>
@@ -123,11 +122,13 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
   };
 
   return (
-    <div className="p-4 relative">
-      {messages.map((msg) => (
-        <MessageBubble key={msg.id} message={msg} />
-      ))}
-      {showThinking && <ThinkingIndicator />}
+    <div className="p-4 relative overflow-y-auto h-full">
+      <div className="space-y-4">
+        {messages.map((msg) => (
+          <MessageBubble key={msg.id} message={msg} />
+        ))}
+        {showThinking && <ThinkingIndicator isVisible={true} />}
+      </div>
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useLayoutEffect, useEffect } from "react";
 import Header from "./components/Header";
 import MessageList from "./components/MessageList";
+import "./assets/Thinking.css";
 import { Upload, ArrowUp } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 

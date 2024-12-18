@@ -11,13 +11,22 @@ const root = ReactDOM.createRoot(
 );
 
 root.render(
-  <React.StrictMode>
+  process.env.NODE_ENV === "development" ? (
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  ) : (
     <App />
-  </React.StrictMode>
+  )
 );
 
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    register();
+  window.addEventListener("load", async () => {
+    try {
+      register();
+      //console.log("Service Worker registered successfully.");
+    } catch (error) {
+      //console.error("Service Worker registration failed:", error);
+    }
   });
 }
