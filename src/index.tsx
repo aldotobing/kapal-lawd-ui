@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import ChatInterface from "./ChatInterface";
+// import ChatInterface from "./ChatInterface";
+import App from "./App";
 import "./index.css";
 import "./assets/code.css";
 import { register } from "./ServiceWorker";
@@ -11,7 +12,7 @@ const root = ReactDOM.createRoot(
 
 root.render(
   <React.StrictMode>
-    <ChatInterface />
+    <App />
   </React.StrictMode>
 );
 
