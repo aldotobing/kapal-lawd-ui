@@ -757,17 +757,9 @@ const ChatInterface: React.FC = () => {
         <div ref={chatEndRef} />
       </div>
 
-      <div className="input-area flex items-center space-x-2 bg-[#3a3a3a]">
-        {/* <button
-          onClick={handleVoiceInput}
-          className={`voice-button ${
-            isListening ? "active" : ""
-          } rounded-full p-2 transition-colors`}
-        >
-          <Mic size={20} />
-        </button> */}
-
-        <label className="upload-button cursor-pointer rounded-full bg-gray-200 dark:bg-gray-300 p-2 transition-colors">
+      <div className="input-area flex items-center space-x-3 bg-[#3a3a3a] px-4 py-2 shadow-md transition-all ease-in-out duration-300">
+        {/* Tombol Upload */}
+        <label className="upload-button cursor-pointer bg-gray-200 dark:bg-gray-300 p-2 transition-all ease-in-out duration-200 hover:bg-gray-400 dark:hover:bg-gray-500">
           <Upload size={20} />
           <input
             type="file"
@@ -777,26 +769,28 @@ const ChatInterface: React.FC = () => {
           />
         </label>
 
+        {/* Input Text */}
         <input
           type="text"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder="Apa yang bisa saya bantu?"
-          className="input-field flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-full
-             focus:outline-none focus:ring-2 focus:ring-blue-500 
-             dark:bg-[#4a4a4a] dark:text-white"
+          className="input-field flex-1 p-3 border border-gray-300 dark:border-gray-600 dark:bg-[#4a4a4a] dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ease-in-out duration-200"
           style={{ marginRight: "-6px" }}
           disabled={isLoading}
         />
 
+        {/* Tombol Kirim */}
         <button
           onClick={handleSendMessage}
           disabled={!inputText.trim() || isLoading}
-          className={`send-button text-white ${
-            !inputText.trim() || isLoading ? "bg-grey-500" : "bg-blue-500"
+          className={`send-button rounded-full p-3 transition-all ease-in-out duration-300 ${
+            !inputText.trim() || isLoading
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-blue-500"
           }`}
-          style={{ marginRight: "-1px" }} // Inline style override
+          style={{ marginRight: "-1px" }}
         >
           <ArrowUp size={20} />
         </button>
