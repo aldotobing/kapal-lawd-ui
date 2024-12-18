@@ -757,7 +757,7 @@ const ChatInterface: React.FC = () => {
         <div ref={chatEndRef} />
       </div>
 
-      <div className="input-area flex items-center space-x-3 bg-[#3a3a3a] px-4 py-2 shadow-md transition-all ease-in-out duration-300">
+      <div className="input-area flex items-center space-x-3 py-2 shadow-md transition-all ease-in-out duration-300 md:space-x-4 sm:py-2 sm:px-4 px-4">
         {/* Tombol Upload */}
         <label className="upload-button cursor-pointer bg-gray-200 dark:bg-gray-300 p-2 transition-all ease-in-out duration-200 hover:bg-gray-400 dark:hover:bg-gray-500">
           <Upload size={20} />
@@ -776,8 +776,7 @@ const ChatInterface: React.FC = () => {
           onChange={(e) => setInputText(e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder="Apa yang bisa saya bantu?"
-          className="input-field flex-1 p-3 border border-gray-300 dark:border-gray-600 dark:bg-[#4a4a4a] dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ease-in-out duration-200"
-          style={{ marginRight: "-6px" }}
+          className="input-field flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-full"
           disabled={isLoading}
         />
 
