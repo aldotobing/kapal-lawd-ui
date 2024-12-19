@@ -14,14 +14,14 @@ body {
 }
 
 /* Add text styles */
-.font-sf-pro {
+/* .font-sf-pro {
   font-family: -apple-system, "SF Pro Text", "SF Pro Icons", system-ui,
     "Helvetica Neue", Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: "kern";
   text-rendering: optimizeLegibility;
-}
+} */
 
 @keyframes iosCircleDraw {
   0% {
