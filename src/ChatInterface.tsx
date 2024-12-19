@@ -631,13 +631,13 @@ const ChatInterface: React.FC = () => {
         const langMatch = chunk.match(/^```(\w*)/);
         result.inCodeBlock = true;
         result.codeBlockLang = langMatch ? langMatch[1] : "";
-        result.content = `<div class="code-box"><pre class="code-block" data-language="${result.codeBlockLang}"><code>`;
+        result.content = `<pre class="code-block" data-language="${result.codeBlockLang}"><code>`;
         return result;
       } else {
         // End of existing code block
         result.inCodeBlock = false;
         result.codeBlockLang = "";
-        result.content = `</code></pre></div>`;
+        result.content = `</code></pre>`;
         return result;
       }
     }
@@ -655,7 +655,11 @@ const ChatInterface: React.FC = () => {
         .replace(/`([^`\r\n]+)`/g, '<code class="inline-code">$1</code>')
         .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
         .replace(/_(.*?)_/g, "<em>$1</em>")
-        .replace(/~~(.*?)~~/g, "<del>$1</del>");
+        .replace(/~~(.*?)~~/g, "<del>$1</del>")
+        .replace(/:\w+:/g, (match) => {
+          const emoji = match.slice(1, -1);
+          return `<span class="emoji">${emoji}</span>`;
+        });
     }
 
     return result;
@@ -835,12 +839,6 @@ const formatMessage = (rawContent: string) => {
     .map((para) => `<p>${para}</p>`)
     .join("");
 
-  // Handle paragraphs
-  formattedContent = formattedContent
-    .split("\n\n")
-    .map((para) => `<p>${para}</p>`)
-    .join("");
-
   // Handle numbered lists
   formattedContent = formattedContent.replace(
     /(?:^|\n)(\d+)\.\s+([^\n]+)/g,
@@ -895,6 +893,25 @@ const formatMessage = (rawContent: string) => {
     /\[(.*?)\]\((.*?)\)/g,
     '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
   );
+
+  // Handle tables
+  formattedContent = formattedContent.replace(
+    /\|(.+?)\|/g,
+    (match) => `<td>${match.slice(1, -1).trim()}</td>`
+  );
+  formattedContent = formattedContent.replace(
+    /(?:^|\n)\|(.+?)\|/g,
+    (match) => `<tr>${match.slice(1, -1).trim()}</tr>`
+  );
+  if (formattedContent.includes("<td>")) {
+    formattedContent = `<table>${formattedContent}</table>`;
+  }
+
+  // Handle emojis
+  formattedContent = formattedContent.replace(/:\w+:/g, (match) => {
+    const emoji = match.slice(1, -1);
+    return `<span class="emoji">${emoji}</span>`;
+  });
 
   return {
     content: formattedContent,
