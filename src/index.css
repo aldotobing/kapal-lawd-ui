@@ -7,11 +7,12 @@
 /* Base Styles */
 body {
   margin: 0;
-  font-family: "Roboto", sans-serif;
-  background-color: #f9f9f9; /* Soft off-white background */
-  color: #333333; /* Darker gray for text */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif; /* iOS-like font stack */
+  background-color: #fafafa; /* Comfortable white background, similar to iOS */
+  color: #2c2c2c; /* Muted dark gray for text, less harsh */
   transition: background-color 0.3s ease, color 0.3s ease;
-  line-height: 1.5;
+  line-height: 1.6; /* Comfortable line height for readability */
 }
 
 * {
@@ -64,9 +65,11 @@ select {
 }
 
 /* Message Bubble */
+/* Message Bubble */
 .message-bubble {
   display: flex;
   margin-bottom: 12px;
+  transition: opacity 0.3s ease, transform 0.3s ease; /* Smooth transition */
 }
 
 .message-bubble.user {
@@ -79,29 +82,63 @@ select {
 
 .message-content {
   max-width: 80%;
-  padding: 12px 16px;
-  border-radius: 16px;
+  padding: 10px 14px; /* Adjusted padding for iMessage-like feel */
+  border-radius: 18px; /* More rounded corners */
   font-size: 16px;
   line-height: 1.4;
   white-space: pre-wrap;
   word-wrap: break-word;
+  transition: background-color 0.3s ease, color 0.3s ease; /* Smooth color transition */
 }
 
+/* User Message */
 .message-bubble.user .message-content {
-  background-color: #1e90ff;
+  background: linear-gradient(
+    135deg,
+    #0a84ff 0%,
+    #0066cc 10%
+  ); /* iOS-style gradient blue */
   color: #ffffff;
   border-bottom-right-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  transform-origin: right bottom; /* For better animation feel */
 }
 
+.dark .message-bubble.user .message-content {
+  background: linear-gradient(
+    135deg,
+    #0a84ff 0%,
+    #0052cc 60%
+  ); /* Slightly adjusted for dark mode */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Assistant Message */
 .message-bubble.assistant .message-content {
-  background-color: #f1f1f1;
-  color: #212121;
-  border-bottom-left-radius: 4px;
+  background-color: #e5e5ea; /* Soft gray for assistant messages */
+  color: #000000; /* Black text */
+  border-bottom-left-radius: 4px; /* Slight tail for iMessage-like effect */
 }
 
+/* Dark Mode */
 .dark .message-bubble.assistant .message-content {
-  background-color: #3a3a3a;
-  color: #ffffff;
+  background-color: #2c2c2c; /* Dark gray for assistant messages */
+  color: #ffffff; /* White text */
+}
+
+/* Smooth Appearance Animation */
+.message-bubble.user .message-content,
+.message-bubble.assistant .message-content {
+  opacity: 0;
+  transform: scale(0.8);
+  animation: fadeIn 0.3s ease forwards; /* Fade-in animation */
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .message-timestamp {
@@ -248,4 +285,9 @@ select {
 
 .dark .upload-button:hover {
   background-color: #666666; /* Darker on hover in dark mode */
+}
+
+/* Scroll to Bottom */
+.scroll-to-bottom {
+  scroll-behavior: smooth;
 }

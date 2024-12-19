@@ -22,6 +22,64 @@ interface MessageListProps {
 const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
   const [showThinking, setShowThinking] = useState(false);
   const blobUrlsRef = useRef<Set<string>>(new Set());
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const chatContainerRef = useRef<HTMLDivElement | null>(null);
+  const [isUserNearBottom, setIsUserNearBottom] = useState(true);
+
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({
+        behavior: "smooth", // Smooth scrolling
+        block: "end", // Scroll to the end of the container
+      });
+    }
+  };
+
+  // useEffect(() => {
+  //   if (messagesEndRef.current) {
+  //     messagesEndRef.current.scrollIntoView({
+  //       behavior: "smooth", // Smooth scrolling
+  //       block: "end", // Scroll to the end of the container
+  //     });
+  //   }
+  // }, [messages]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (chatContainerRef.current) {
+        const { scrollTop, scrollHeight, clientHeight } =
+          chatContainerRef.current;
+        const isNearBottom = scrollHeight - scrollTop <= clientHeight + 100; // 100px threshold
+        setIsUserNearBottom(isNearBottom);
+      }
+    };
+
+    const currentChatContainer = chatContainerRef.current;
+    if (currentChatContainer) {
+      currentChatContainer.addEventListener("scroll", handleScroll);
+    }
+
+    // Cleanup event listener
+    return () => {
+      if (currentChatContainer) {
+        currentChatContainer.removeEventListener("scroll", handleScroll);
+      }
+    };
+  }, []);
+
+  // Scroll to the latest message when a new message is added
+  useEffect(() => {
+    if (isUserNearBottom) {
+      scrollToBottom();
+    }
+  }, [messages, isUserNearBottom]); // Trigger when messages change
+
+  // Auto-scroll when assistant is typing
+  useEffect(() => {
+    if (isLoading && isUserNearBottom) {
+      scrollToBottom();
+    }
+  }, [isLoading, isUserNearBottom]);
 
   // Cleanup blob URLs when component unmounts
   useEffect(() => {
@@ -122,12 +180,16 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
   };
 
   return (
-    <div className="p-4 relative overflow-y-auto h-full">
+    <div
+      className="p-4 relative overflow-y-auto h-full "
+      ref={chatContainerRef}
+    >
       <div className="space-y-4">
         {messages.map((msg) => (
           <MessageBubble key={msg.id} message={msg} />
         ))}
         {showThinking && <ThinkingIndicator isVisible={true} />}
+        <div ref={messagesEndRef} />
       </div>
     </div>
   );
