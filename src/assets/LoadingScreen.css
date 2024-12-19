@@ -9,20 +9,11 @@ body {
   color: #333; /* Neutral dark gray text */
 }
 
-.ease-ios {
-  transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+.text-center {
+  text-align: center;
 }
 
-.duration-800 {
-  transition-duration: 800ms;
-}
-
-@font-face {
-  font-family: "SF Pro Text";
-  src: local(-apple-system);
-  font-weight: 400, 500, 600;
-}
-
+/* Add text styles */
 .font-sf-pro {
   font-family: -apple-system, "SF Pro Text", "SF Pro Icons", system-ui,
     "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -108,4 +99,12 @@ body {
 
 .animate-ios-scale-in {
   animation: iosScaleIn 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+.ease-ios {
+  transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.duration-800 {
+  transition-duration: 800ms;
 }
