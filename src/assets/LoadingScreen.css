@@ -9,77 +9,55 @@ body {
   color: #333; /* Neutral dark gray text */
 }
 
-/* Container for the loader and checkmark */
-.loader-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  height: 100vh;
-  background-color: #f7f7f7;
-  padding: 20px;
-  text-align: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-  border-radius: 12px; /* Rounded corners */
-  /* background: linear-gradient(135deg, #f1f3f6, #e0e0e0); Soft gradient */
+.ease-ios {
+  transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-/* Loader (Bouncing Dots) styling */
-.loader {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 30px;
+.duration-800 {
+  transition-duration: 800ms;
 }
 
-.loader div {
-  width: 12px;
-  height: 12px;
-  background-color: #007aff; /* iOS blue */
-  border-radius: 50%;
-  animation: bounce 1.2s infinite ease-in-out;
+@font-face {
+  font-family: "SF Pro Text";
+  src: local(-apple-system);
+  font-weight: 400, 500, 600;
 }
 
-.loader div:nth-child(1) {
-  animation-delay: 0s;
+.font-sf-pro {
+  font-family: -apple-system, "SF Pro Text", "SF Pro Icons", system-ui,
+    "Helvetica Neue", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "kern";
+  text-rendering: optimizeLegibility;
 }
 
-.loader div:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.loader div:nth-child(3) {
-  animation-delay: 0.4s;
-}
-
-/* Bounce animation for dots */
-@keyframes bounce {
-  0%,
+@keyframes iosCircleDraw {
+  0% {
+    stroke-dasharray: 157;
+    stroke-dashoffset: 157;
+  }
   100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px); /* Bouncing effect */
+    stroke-dasharray: 157;
+    stroke-dashoffset: 0;
   }
 }
 
-/* Fade-in effect for loading text */
-.loading-text {
-  font-size: 18px;
-  color: #555;
-  font-weight: 600;
-  margin-top: 10px;
-  text-align: center;
-  opacity: 0;
-  animation: fadeInText 1s ease-in-out forwards;
+@keyframes iosCheckDraw {
+  0% {
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+  }
+  100% {
+    stroke-dasharray: 48;
+    stroke-dashoffset: 0;
+  }
 }
 
-/* Fade-in animation for text */
-@keyframes fadeInText {
+@keyframes iosFadeIn {
   0% {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(10px);
   }
   100% {
     opacity: 1;
@@ -87,37 +65,10 @@ body {
   }
 }
 
-/* Checkmark container styling */
-.checkmark-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  opacity: 0;
-  animation: fadeIn 0.8s ease-in-out forwards;
-}
-
-.checkmark {
-  font-size: 60px;
-  color: #34c759; /* iOS Green (success) */
-  margin-bottom: 20px;
-  animation: scaleIn 0.5s ease-in-out forwards;
-}
-
-/* Fade-in animation for checkmark */
-@keyframes fadeIn {
+@keyframes iosScaleIn {
   0% {
     opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-/* Scale-in animation for checkmark */
-@keyframes scaleIn {
-  0% {
-    opacity: 0;
-    transform: scale(0.8);
+    transform: scale(0.95);
   }
   100% {
     opacity: 1;
@@ -125,53 +76,36 @@ body {
   }
 }
 
-/* Final message text styling */
-.checkmark-container p {
-  font-size: 20px;
-  font-weight: 600;
-  color: #212529; /* Darker text for final message */
-  margin: 0;
-  opacity: 0;
-  animation: fadeInText 1.5s ease-in-out 0.5s forwards;
+.animate-spin-slow {
+  animation: spin 1.5s linear infinite;
 }
 
-/* Loader container additional styling */
-.loader-container p {
-  font-size: 16px;
-  font-weight: 500;
-  color: #999; /* Lighter gray text */
-  margin: 0;
-}
-
-/* Subtle background gradient for loader container */
-.loader-container {
-  background: linear-gradient(135deg, #f1f3f6, #e0e0e0); /* Soft gradient */
-}
-
-/* Add soft shadows and rounded edges for modern look */
-.loader,
-.checkmark-container {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-  border-radius: 12px; /* Rounded corners */
-}
-
-/* Fade-in animation for chat interface */
-@keyframes fadeInChat {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
   }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
+  to {
+    transform: rotate(360deg);
   }
 }
 
-/* Styling for chat interface */
-.chat-interface {
+.animate-ios-circle-draw {
+  animation: iosCircleDraw 0.8s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+.animate-ios-check-draw {
+  animation: iosCheckDraw 0.6s cubic-bezier(0.23, 1, 0.32, 1) 0.8s forwards;
+}
+
+.animate-ios-fade-in {
+  animation: iosFadeIn 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+.animate-ios-fade-in-delayed {
+  animation: iosFadeIn 0.4s cubic-bezier(0.23, 1, 0.32, 1) 1.4s forwards;
   opacity: 0;
-  animation: fadeInChat 1s ease-in-out forwards;
-  margin-top: 20px;
-  font-size: 18px;
-  color: #333;
+}
+
+.animate-ios-scale-in {
+  animation: iosScaleIn 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
 }

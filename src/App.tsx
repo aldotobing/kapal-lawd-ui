@@ -1,5 +1,5 @@
 import { HelmetProvider, Helmet } from "react-helmet-async";
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import LoadingScreen from "./components/LoadingScreen";
 
 const ChatInterface = lazy(() => import("./ChatInterface"));
@@ -7,12 +7,9 @@ const ChatInterface = lazy(() => import("./ChatInterface"));
 function App() {
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false); // Berhenti loading setelah 4500ms
-    }, 4500);
-    return () => clearTimeout(timer);
-  }, []);
+  const handleLoadingComplete = () => {
+    setIsLoading(false);
+  };
 
   return (
     <HelmetProvider>
@@ -30,14 +27,23 @@ function App() {
         </Helmet>
 
         {/* Show LoadingScreen while isLoading is true */}
-        {isLoading ? (
-          <LoadingScreen minimumDuration={5000} />
-        ) : (
-          // Suspense will wrap the ChatInterface and display LoadingScreen as a fallback until it's ready
-          <Suspense fallback={<LoadingScreen minimumDuration={0} />}>
+        {isLoading && (
+          <LoadingScreen
+            minimumDuration={5000}
+            onLoadingComplete={handleLoadingComplete}
+          />
+        )}
+
+        {/* ChatInterface is always rendered but initially hidden */}
+        <div
+          className={`transition-opacity duration-800 ease-ios ${
+            isLoading ? "opacity-0" : "opacity-100"
+          }`}
+        >
+          <Suspense fallback={null}>
             <ChatInterface />
           </Suspense>
-        )}
+        </div>
       </div>
     </HelmetProvider>
   );
