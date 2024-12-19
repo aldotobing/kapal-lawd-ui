@@ -29,7 +29,7 @@ function App() {
         {/* Show LoadingScreen while isLoading is true */}
         {isLoading && (
           <LoadingScreen
-            minimumDuration={5000}
+            minimumDuration={1000}
             onLoadingComplete={handleLoadingComplete}
           />
         )}
