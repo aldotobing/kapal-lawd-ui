@@ -1,7 +1,15 @@
 import { useEffect, useState } from "react";
 import "../assets/LoadingScreen.css";
 
-function LoadingScreen({ minimumDuration = 5000, onLoadingComplete }) {
+interface LoadingScreenProps {
+  minimumDuration?: number; // Optional prop with default value
+  onLoadingComplete: () => void; // Function prop with no arguments and void return type
+}
+
+function LoadingScreen({
+  minimumDuration = 5000,
+  onLoadingComplete,
+}: LoadingScreenProps) {
   const [step, setStep] = useState(0);
   const [isExiting, setIsExiting] = useState(false);
   const steps = [
@@ -33,11 +41,9 @@ function LoadingScreen({ minimumDuration = 5000, onLoadingComplete }) {
     const exitTimeout = setTimeout(() => {
       setIsExiting(true);
       setTimeout(() => {
-        if (onLoadingComplete) {
-          onLoadingComplete();
-        }
-      }, 800);
-    }, Math.max(minimumDuration - (Date.now() - startTime) + 2000, 0));
+        onLoadingComplete();
+      }, 800); // Match this with CSS transition duration
+    }, Math.max(minimumDuration - (Date.now() - startTime) + 2000, 0)); // Add 2s delay after minimum duration
 
     return () => {
       clearInterval(interval);
