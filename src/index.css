@@ -83,8 +83,8 @@ select {
 .message-content {
   max-width: 80%;
   padding: 10px 14px; /* Adjusted padding for iMessage-like feel */
-  border-radius: 25px; /* More rounded corners */
-  font-size: 16px;
+  border-radius: 50px; /* More rounded corners */
+  font-size: 15px;
   line-height: 1.4;
   white-space: pre-wrap;
   word-wrap: break-word;
